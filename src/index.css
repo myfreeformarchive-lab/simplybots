@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --banana: 48 96% 53%; /* #FACC15 */
+    --solana-purple: 267 100% 63%; /* #9945FF */
+    --solana-green: 155 100% 51%; /* #14F195 */
+  }
+  
+  body {
+    @apply bg-black text-white font-sans antialiased overflow-x-hidden;
+    font-family: 'Inter', sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+}
+
+@layer utilities {
+  .text-glow-banana {
+    text-shadow: 0 0 20px rgba(250, 204, 21, 0.5);
+  }
+  .text-glow-purple {
+    text-shadow: 0 0 20px rgba(153, 69, 255, 0.5);
+  }
+  .text-glow-green {
+    text-shadow: 0 0 20px rgba(20, 241, 149, 0.5);
+  }
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl;
+  }
+  .neon-border-banana {
+    box-shadow: 0 0 15px rgba(250, 204, 21, 0.2), inset 0 0 15px rgba(250, 204, 21, 0.1);
+    border-color: rgba(250, 204, 21, 0.5);
+  }
+  .neon-border-purple {
+    box-shadow: 0 0 15px rgba(153, 69, 255, 0.2), inset 0 0 15px rgba(153, 69, 255, 0.1);
+    border-color: rgba(153, 69, 255, 0.5);
+  }
+  .neon-border-green {
+    box-shadow: 0 0 15px rgba(20, 241, 149, 0.2), inset 0 0 15px rgba(20, 241, 149, 0.1);
+    border-color: rgba(20, 241, 149, 0.5);
+  }
+}
