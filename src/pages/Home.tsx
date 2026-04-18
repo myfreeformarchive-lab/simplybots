@@ -60,7 +60,7 @@ export default function Home() {
                   className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors font-bold"
                 >
                   <Send className="w-5 h-5 text-solana-green" />
-                  @simplypumping
+                  Simplybots Lab
                 </a>
               </div>
             </div>
