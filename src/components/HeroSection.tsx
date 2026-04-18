@@ -34,13 +34,13 @@ export default function HeroSection() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          className="grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-3xl mx-auto"
         >
           <a
             href="https://t.me/SolBananaBot"
             target="_blank"
             rel="noreferrer"
-            className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-banana text-black font-bold rounded-xl overflow-hidden transition-transform hover:scale-105"
+            className="group relative inline-flex items-center justify-center gap-2 px-8 py-4 bg-banana text-black font-bold rounded-xl overflow-hidden transition-transform hover:scale-105 w-full"
           >
             <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/30 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]" />
             Add @SolBananaBot
@@ -50,7 +50,7 @@ export default function HeroSection() {
             href="https://t.me/SolSnackBot"
             target="_blank"
             rel="noreferrer"
-            className="group inline-flex items-center justify-center gap-2 px-8 py-4 glass-card font-bold rounded-xl transition-all hover:bg-white/10 hover:neon-border-green"
+            className="group inline-flex items-center justify-center gap-2 px-8 py-4 glass-card font-bold rounded-xl transition-all hover:bg-white/10 hover:neon-border-green w-full"
           >
             <Trophy className="w-5 h-5 text-solana-green" />
             Add @SolSnackBot
@@ -59,7 +59,7 @@ export default function HeroSection() {
             href="https://t.me/Simplypumping"
             target="_blank"
             rel="noreferrer"
-            className="group inline-flex items-center justify-center gap-2 px-8 py-4 glass-card font-bold rounded-xl transition-all hover:bg-white/10 hover:neon-border-purple"
+            className="group inline-flex items-center justify-center gap-2 px-8 py-4 glass-card font-bold rounded-xl transition-all hover:bg-white/10 hover:neon-border-purple w-full"
           >
             <MessageCircle className="w-5 h-5 text-solana-purple" />
             Join @Simplypumping
