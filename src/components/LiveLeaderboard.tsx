@@ -85,6 +85,9 @@ export default function LiveLeaderboard() {
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
 
+  const hasSupabaseUrl = Boolean(import.meta.env.VITE_SUPABASE_URL);
+  const hasSupabaseAnonKey = Boolean(import.meta.env.VITE_SUPABASE_ANON_KEY);
+
   const viewName = useMemo(
     () =>
       import.meta.env.VITE_SUPABASE_LEADERBOARD_VIEW ??
@@ -179,8 +182,15 @@ export default function LiveLeaderboard() {
           Supabase is not configured for this deployment.
         </p>
         <div className="mt-3 text-xs text-gray-500 space-y-1">
-          <div>Missing VITE_SUPABASE_URL</div>
-          <div>Missing VITE_SUPABASE_ANON_KEY</div>
+          <div>
+            VITE_SUPABASE_URL: {hasSupabaseUrl ? "set" : "missing"}
+          </div>
+          <div>
+            VITE_SUPABASE_ANON_KEY: {hasSupabaseAnonKey ? "set" : "missing"}
+          </div>
+          <div>
+            VITE_SUPABASE_LEADERBOARD_VIEW: {viewName}
+          </div>
         </div>
       </div>
     );
