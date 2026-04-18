@@ -4,7 +4,7 @@ import LiveLeaderboard from "@/components/LiveLeaderboard";
 import DiamondHandsFeed from "@/components/DiamondHandsFeed";
 import ShoutoutsFeed from "@/components/ShoutoutsFeed";
 import Footer from "@/components/Footer";
-import { Send, Twitter } from "lucide-react";
+import { Send } from "lucide-react";
 
 export default function Home() {
   return (
@@ -50,7 +50,12 @@ export default function Home() {
                   rel="noreferrer"
                   className="group inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition-colors font-bold"
                 >
-                  <Twitter className="w-5 h-5" />
+                  <svg className="w-5 h-5" viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      fill="currentColor"
+                      d="M18.901 1.153h3.686l-8.052 9.2 9.472 12.514H16.62l-5.79-7.567-6.62 7.567H.52l8.614-9.85L.052 1.153h7.58l5.23 6.913 6.039-6.913Zm-1.294 19.51h2.043L6.52 3.24H4.33l13.277 17.422Z"
+                    />
+                  </svg>
                   @Simplybots1
                 </a>
                 <a
