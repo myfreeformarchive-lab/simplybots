@@ -11,7 +11,16 @@ export default function Navbar() {
       <div className="container mx-auto px-4 h-20 flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <img src="/logo.svg" alt="Solana Bot Ecosystem Logo" className="w-8 h-8" />
-          <span className="text-xl font-bold text-white tracking-wider">SimplyBots</span>
+          <div className="flex flex-col leading-tight">
+            <span className="text-xl font-bold text-white tracking-wider">SimplyBots</span>
+            <div className="md:hidden flex items-center gap-2 text-[11px] font-medium text-gray-400">
+              <a href="https://myfreeform.page" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">
+                Powered by myfreeform.page
+              </a>
+              <span>&middot;</span>
+              <span>Built for Telegram</span>
+            </div>
+          </div>
         </div>
 
         <div className="hidden md:flex items-center gap-2 text-xs font-medium text-gray-400">
