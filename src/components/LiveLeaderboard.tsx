@@ -97,10 +97,21 @@ const formatDexLabel = (dex: string) => {
     .join(" ");
 };
 
-const buildDexscreenerUrl = (chain: string, contractAddress: string) => {
-  const safeChain = chain.trim().toLowerCase();
+const buildTokenUrl = (
+  chain: string,
+  contractAddress: string,
+  dex: string | null,
+) => {
   const safeAddress = contractAddress.trim();
-  if (!safeChain || !safeAddress) return null;
+  if (!safeAddress) return null;
+
+  const safeDex = (dex ?? "").trim().toLowerCase();
+  if (safeDex === "pumpfun" || safeDex === "pumpswap") {
+    return `https://pump.fun/coin/${encodeURIComponent(safeAddress)}`;
+  }
+
+  const safeChain = chain.trim().toLowerCase();
+  if (!safeChain) return null;
   return `https://dexscreener.com/${encodeURIComponent(safeChain)}/${encodeURIComponent(safeAddress)}`;
 };
 
@@ -290,7 +301,7 @@ export default function LiveLeaderboard() {
             const tokenUrl =
               row.contractAddress == null
                 ? null
-                : buildDexscreenerUrl(dexscreenerChain, row.contractAddress);
+                : buildTokenUrl(dexscreenerChain, row.contractAddress, row.dex);
             const dexLabel = row.dex == null ? null : formatDexLabel(row.dex);
             return (
             <div
