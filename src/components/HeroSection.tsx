@@ -3,7 +3,7 @@ import { ArrowRight, MessageCircle, Trophy } from "lucide-react";
 
 export default function HeroSection() {
   return (
-    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20 pb-32">
+    <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-28 md:pt-20 pb-32">
       {/* Background Elements */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-solana-purple/20 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute top-1/4 right-1/4 w-[400px] h-[400px] bg-banana/20 rounded-full blur-[100px] pointer-events-none" />
