@@ -261,9 +261,6 @@ export default function LiveLeaderboard() {
           Global Leaderboard
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">
-            {lastUpdated ? `Updated ${lastUpdated}` : "Live"}
-          </span>
           <div className="flex items-center gap-1">
             <button
               type="button"
@@ -295,65 +292,71 @@ export default function LiveLeaderboard() {
       ) : isLoading && rows.length === 0 ? (
         <p className="text-sm text-gray-400">Loading...</p>
       ) : (
-        <div className="space-y-2">
-          {currentPageRows.map((row, idx) => {
-            const globalRank = pageIndex * pageSize + idx + 1;
-            const tokenUrl =
-              row.contractAddress == null
-                ? null
-                : buildTokenUrl(dexscreenerChain, row.contractAddress, row.dex);
-            const dexLabel = row.dex == null ? null : formatDexLabel(row.dex);
-            return (
-            <div
-              key={`${row.contractAddress ?? "na"}-${row.symbol ?? globalRank}`}
-              className="rounded-xl border border-white/5 bg-white/5 px-3 py-2"
-            >
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-sm text-gray-400 w-3">#{globalRank}</span>
-                  {tokenUrl ? (
-                    <a
-                      href={tokenUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="font-bold text-white truncate hover:text-banana transition-colors inline-flex items-center gap-2 min-w-0"
-                      title={row.contractAddress ?? undefined}
-                    >
-                      <span className="truncate">{row.symbol ?? "—"}</span>
-                      {dexLabel && (
-                        <span className="hidden sm:inline text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
-                          {dexLabel}
-                        </span>
-                      )}
-                      <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
-                    </a>
-                  ) : (
-                    <span className="font-bold text-white truncate">
-                      {row.symbol ?? "—"}
-                    </span>
-                  )}
+        <div>
+          <div className="space-y-2">
+            {currentPageRows.map((row, idx) => {
+              const globalRank = pageIndex * pageSize + idx + 1;
+              const tokenUrl =
+                row.contractAddress == null
+                  ? null
+                  : buildTokenUrl(dexscreenerChain, row.contractAddress, row.dex);
+              const dexLabel = row.dex == null ? null : formatDexLabel(row.dex);
+              return (
+              <div
+                key={`${row.contractAddress ?? "na"}-${row.symbol ?? globalRank}`}
+                className="rounded-xl border border-white/5 bg-white/5 px-3 py-2"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-sm text-gray-400 w-3">#{globalRank}</span>
+                    {tokenUrl ? (
+                      <a
+                        href={tokenUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-bold text-white truncate hover:text-banana transition-colors inline-flex items-center gap-2 min-w-0"
+                        title={row.contractAddress ?? undefined}
+                      >
+                        <span className="truncate">{row.symbol ?? "—"}</span>
+                        {dexLabel && (
+                          <span className="hidden sm:inline text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
+                            {dexLabel}
+                          </span>
+                        )}
+                        <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
+                      </a>
+                    ) : (
+                      <span className="font-bold text-white truncate">
+                        {row.symbol ?? "—"}
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-sm font-bold text-banana tabular-nums">
+                    {row.score == null ? "—" : formatScore(row.score)}
+                  </span>
                 </div>
-                <span className="text-sm font-bold text-banana tabular-nums">
-                  {row.score == null ? "—" : formatScore(row.score)}
-                </span>
+                <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
+                  <span className="tabular-nums">
+                    MCAP {row.mcap == null ? "—" : formatCompact(row.mcap)}
+                  </span>
+                  <span className="tabular-nums">
+                    1h Vol {row.buyVolumeUsd == null ? "—" : `$${formatCompact(row.buyVolumeUsd)}`}
+                  </span>
+                  <span className="tabular-nums">
+                    1h Buys {row.buyCount == null ? "—" : formatCompact(row.buyCount)}
+                  </span>
+                </div>
               </div>
-              <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
-                <span className="tabular-nums">
-                  MCAP {row.mcap == null ? "—" : formatCompact(row.mcap)}
-                </span>
-                <span className="tabular-nums">
-                  1h Vol {row.buyVolumeUsd == null ? "—" : `$${formatCompact(row.buyVolumeUsd)}`}
-                </span>
-                <span className="tabular-nums">
-                  1h Buys {row.buyCount == null ? "—" : formatCompact(row.buyCount)}
-                </span>
-              </div>
-            </div>
-          )})}
+            )})}
 
-          {rows.length === 0 && (
-            <p className="text-sm text-gray-400">No data yet.</p>
-          )}
+            {rows.length === 0 && (
+              <p className="text-sm text-gray-400">No data yet.</p>
+            )}
+          </div>
+
+          <div className="mt-4 text-xs text-gray-500 text-right">
+            {lastUpdated ? `Updated ${lastUpdated}` : "Live"}
+          </div>
         </div>
       )}
     </div>
