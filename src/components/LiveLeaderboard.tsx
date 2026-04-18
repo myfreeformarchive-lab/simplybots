@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
+import { ChevronLeft, ChevronRight, ExternalLink, Trophy } from "lucide-react";
 
 type LeaderboardRow = {
   contractAddress: string | null;
+  dex: string | null;
   symbol: string | null;
   mcap: number | null;
   buyVolumeUsd: number | null;
@@ -28,6 +29,12 @@ const normalizeRow = (raw: Record<string, unknown>): LeaderboardRow => {
     getString(raw.contract_address) ??
     getString(raw.mint) ??
     getString(raw.address) ??
+    null;
+
+  const dex =
+    getString(raw.dex) ??
+    getString(raw.dex_id) ??
+    getString(raw.dexId) ??
     null;
 
   const symbol =
@@ -55,6 +62,7 @@ const normalizeRow = (raw: Record<string, unknown>): LeaderboardRow => {
 
   return {
     contractAddress,
+    dex,
     symbol,
     mcap,
     buyVolumeUsd,
@@ -77,6 +85,23 @@ const formatScore = (value: number) => {
   return new Intl.NumberFormat(undefined, {
     maximumFractionDigits: 2,
   }).format(value);
+};
+
+const formatDexLabel = (dex: string) => {
+  const trimmed = dex.trim();
+  if (!trimmed) return null;
+  return trimmed
+    .split(/[_\-\s]+/g)
+    .filter(Boolean)
+    .map((part) => part.slice(0, 1).toUpperCase() + part.slice(1))
+    .join(" ");
+};
+
+const buildDexscreenerUrl = (chain: string, contractAddress: string) => {
+  const safeChain = chain.trim().toLowerCase();
+  const safeAddress = contractAddress.trim();
+  if (!safeChain || !safeAddress) return null;
+  return `https://dexscreener.com/${encodeURIComponent(safeChain)}/${encodeURIComponent(safeAddress)}`;
 };
 
 export default function LiveLeaderboard() {
@@ -107,6 +132,11 @@ export default function LiveLeaderboard() {
     const parsed = raw ? Number(raw) : 60_000;
     return Number.isFinite(parsed) ? parsed : 60_000;
   }, []);
+
+  const dexscreenerChain = useMemo(
+    () => import.meta.env.VITE_DEXSCREENER_CHAIN ?? "solana",
+    [],
+  );
 
   const lastUpdated = useMemo(() => {
     const iso = rows[0]?.updatedAt;
@@ -155,7 +185,7 @@ export default function LiveLeaderboard() {
       const { data, error } = await supabase
           .from(viewName)
           .select(
-            "contract_address,symbol,mcap,buy_volume_usd,buy_count,updated_at,score",
+            "contract_address,dex,symbol,mcap,buy_volume_usd,buy_count,updated_at,score",
           )
           .order("score", { ascending: false })
           .limit(limit);
@@ -257,6 +287,11 @@ export default function LiveLeaderboard() {
         <div className="space-y-2">
           {currentPageRows.map((row, idx) => {
             const globalRank = pageIndex * pageSize + idx + 1;
+            const tokenUrl =
+              row.contractAddress == null
+                ? null
+                : buildDexscreenerUrl(dexscreenerChain, row.contractAddress);
+            const dexLabel = row.dex == null ? null : formatDexLabel(row.dex);
             return (
             <div
               key={`${row.contractAddress ?? "na"}-${row.symbol ?? globalRank}`}
@@ -265,9 +300,27 @@ export default function LiveLeaderboard() {
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-sm text-gray-400 w-8">#{globalRank}</span>
-                  <span className="font-bold text-white truncate">
-                    {row.symbol ?? "—"}
-                  </span>
+                  {tokenUrl ? (
+                    <a
+                      href={tokenUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="font-bold text-white truncate hover:text-banana transition-colors inline-flex items-center gap-2 min-w-0"
+                      title={row.contractAddress ?? undefined}
+                    >
+                      <span className="truncate">{row.symbol ?? "—"}</span>
+                      {dexLabel && (
+                        <span className="hidden sm:inline text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
+                          {dexLabel}
+                        </span>
+                      )}
+                      <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
+                    </a>
+                  ) : (
+                    <span className="font-bold text-white truncate">
+                      {row.symbol ?? "—"}
+                    </span>
+                  )}
                 </div>
                 <span className="text-sm font-bold text-banana tabular-nums">
                   {row.score == null ? "—" : formatScore(row.score)}
