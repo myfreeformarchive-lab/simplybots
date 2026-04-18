@@ -65,7 +65,7 @@ export default function DiamondHandsFeed() {
   const [error, setError] = useState<string | null>(null);
 
   const tableName = useMemo(
-    () => import.meta.env.VITE_SUPABASE_DIAMOND_HANDS_TABLE ?? "diamond_hands",
+    () => import.meta.env.VITE_SUPABASE_DIAMOND_HANDS_TABLE,
     [],
   );
 
@@ -76,7 +76,7 @@ export default function DiamondHandsFeed() {
   }, []);
 
   useEffect(() => {
-    if (!isSupabaseConfigured || !supabase) return;
+    if (!isSupabaseConfigured || !supabase || !tableName) return;
 
     let cancelled = false;
 
@@ -119,7 +119,7 @@ export default function DiamondHandsFeed() {
     };
   }, [limit, tableName]);
 
-  if (!isSupabaseConfigured) {
+  if (!isSupabaseConfigured || !tableName) {
     return (
       <div className="glass-card border border-white/10 rounded-2xl p-6">
         <div className="flex items-center gap-2 text-white font-bold mb-2">
@@ -143,11 +143,14 @@ export default function DiamondHandsFeed() {
         <span className="text-xs text-gray-500">Live</span>
       </div>
 
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <Diamond className="w-8 h-8 text-cyan-300/30 mb-3" />
-        <p className="text-gray-400 font-medium">Coming soon...</p>
-      </div>
+      {error ? (
+        <p className="text-sm text-red-400">{error}</p>
+      ) : (
+        <div className="flex flex-col items-center justify-center py-12 text-center">
+          <Diamond className="w-8 h-8 text-cyan-300/30 mb-3" />
+          <p className="text-gray-400 font-medium">Coming soon...</p>
+        </div>
+      )}
     </div>
   );
 }
-
