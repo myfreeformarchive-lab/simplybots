@@ -269,7 +269,7 @@ export default function LiveLeaderboard() {
                     {row.symbol ?? "—"}
                   </span>
                 </div>
-                <span className="text-sm text-gray-300 tabular-nums">
+                <span className="text-sm font-bold text-banana tabular-nums">
                   {row.score == null ? "—" : formatScore(row.score)}
                 </span>
               </div>
