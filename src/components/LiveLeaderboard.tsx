@@ -176,8 +176,12 @@ export default function LiveLeaderboard() {
           Global Leaderboard
         </div>
         <p className="text-sm text-gray-400">
-          Coming soon...
+          Supabase is not configured for this deployment.
         </p>
+        <div className="mt-3 text-xs text-gray-500 space-y-1">
+          <div>Missing VITE_SUPABASE_URL</div>
+          <div>Missing VITE_SUPABASE_ANON_KEY</div>
+        </div>
       </div>
     );
   }
