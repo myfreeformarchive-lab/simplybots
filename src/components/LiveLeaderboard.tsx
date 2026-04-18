@@ -310,7 +310,7 @@ export default function LiveLeaderboard() {
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-sm text-gray-400 w-8">#{globalRank}</span>
+                  <span className="text-sm text-gray-400 w-2">#{globalRank}</span>
                   {tokenUrl ? (
                     <a
                       href={tokenUrl}
