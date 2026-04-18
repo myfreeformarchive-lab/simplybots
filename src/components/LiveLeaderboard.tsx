@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { Trophy } from "lucide-react";
+import { ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 
 type LeaderboardRow = {
   contractAddress: string | null;
@@ -84,6 +84,7 @@ export default function LiveLeaderboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
+  const [pageIndex, setPageIndex] = useState(0);
 
   const hasSupabaseUrl = Boolean(import.meta.env.VITE_SUPABASE_URL);
   const hasSupabaseAnonKey = Boolean(import.meta.env.VITE_SUPABASE_ANON_KEY);
@@ -122,6 +123,21 @@ export default function LiveLeaderboard() {
     const diffD = Math.round(diffH / 24);
     return `${diffD}d ago`;
   }, [now, rows]);
+
+  const pageSize = 5;
+  const pageCount = useMemo(() => {
+    if (rows.length === 0) return 1;
+    return Math.max(1, Math.ceil(rows.length / pageSize));
+  }, [rows.length]);
+
+  const currentPageRows = useMemo(() => {
+    const start = pageIndex * pageSize;
+    return rows.slice(start, start + pageSize);
+  }, [pageIndex, rows]);
+
+  useEffect(() => {
+    if (pageIndex > pageCount - 1) setPageIndex(0);
+  }, [pageCount, pageIndex]);
 
   useEffect(() => {
     const interval = window.setInterval(() => setNow(Date.now()), 30_000);
@@ -203,9 +219,34 @@ export default function LiveLeaderboard() {
           <Trophy className="w-4 h-4 text-banana" />
           Global Leaderboard
         </div>
-        <span className="text-xs text-gray-500">
-          {lastUpdated ? `Updated ${lastUpdated}` : "Live"}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs text-gray-500">
+            {lastUpdated ? `Updated ${lastUpdated}` : "Live"}
+          </span>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              aria-label="Previous"
+              disabled={pageIndex === 0 || rows.length === 0}
+              onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <div className="min-w-[52px] text-center text-xs text-gray-500 tabular-nums">
+              {Math.min(pageIndex + 1, pageCount)}/{pageCount}
+            </div>
+            <button
+              type="button"
+              aria-label="Next"
+              disabled={pageIndex >= pageCount - 1 || rows.length === 0}
+              onClick={() => setPageIndex((p) => Math.min(pageCount - 1, p + 1))}
+              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
       </div>
 
       {error ? (
@@ -214,14 +255,16 @@ export default function LiveLeaderboard() {
         <p className="text-sm text-gray-400">Loading...</p>
       ) : (
         <div className="space-y-2">
-          {rows.map((row, idx) => (
+          {currentPageRows.map((row, idx) => {
+            const globalRank = pageIndex * pageSize + idx + 1;
+            return (
             <div
-              key={`${row.contractAddress ?? "na"}-${row.symbol ?? idx}`}
+              key={`${row.contractAddress ?? "na"}-${row.symbol ?? globalRank}`}
               className="rounded-xl border border-white/5 bg-white/5 px-3 py-2"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-sm text-gray-400 w-8">#{idx + 1}</span>
+                  <span className="text-sm text-gray-400 w-8">#{globalRank}</span>
                   <span className="font-bold text-white truncate">
                     {row.symbol ?? "—"}
                   </span>
@@ -242,7 +285,7 @@ export default function LiveLeaderboard() {
                 </span>
               </div>
             </div>
-          ))}
+          )})}
 
           {rows.length === 0 && (
             <p className="text-sm text-gray-400">No data yet.</p>
