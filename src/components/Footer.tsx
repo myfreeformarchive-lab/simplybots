@@ -15,7 +15,7 @@ export default function Footer() {
           </div>
 
           <div className="md:ml-auto">
-            <h4 className="font-bold mb-4 text-white">Bots</h4>
+            <h4 className="font-bold mb-4 text-white">Bots & Channel</h4>
             <ul className="space-y-2 text-sm text-gray-500">
               <li><a href="https://t.me/SolBananaBot" className="hover:text-banana transition-colors">@SolBananaBot</a></li>
               <li><a href="https://t.me/SolSnackBot" className="hover:text-solana-green transition-colors">@SolSnackBot</a></li>
