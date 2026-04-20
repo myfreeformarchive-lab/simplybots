@@ -89,6 +89,12 @@ export default function DiamondHandsFeed() {
     return Number.isFinite(parsed) ? parsed : 10;
   }, []);
 
+  const refreshMs = useMemo(() => {
+    const raw = import.meta.env.VITE_SUPABASE_LEADERBOARD_POLL_MS;
+    const parsed = raw ? Number(raw) : 600_000;
+    return Number.isFinite(parsed) ? parsed : 600_000;
+  }, []);
+
   const pageSize = 5;
   const pageCount = useMemo(() => {
     if (items.length === 0) return 1;
@@ -157,21 +163,13 @@ export default function DiamondHandsFeed() {
     };
 
     fetchItems();
-
-    const channel = supabase
-      .channel("diamond-hands")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: tableName },
-        () => fetchItems(),
-      )
-      .subscribe();
+    const interval = window.setInterval(fetchItems, refreshMs);
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      window.clearInterval(interval);
     };
-  }, [limit, tableName]);
+  }, [limit, refreshMs, tableName]);
 
   if (!isSupabaseConfigured) {
     return (
@@ -194,32 +192,29 @@ export default function DiamondHandsFeed() {
           <Diamond className="w-4 h-4 text-cyan-300" />
           Diamond Hands
         </div>
-        <div className="flex items-center gap-3">
-          {items.length > pageSize && (
-            <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setPageIndex((p) => (p <= 0 ? pageCount - 1 : p - 1))}
-                className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-                aria-label="Previous page"
-              >
-                <ChevronLeft className="w-4 h-4 text-gray-400" />
-              </button>
-              <span className="text-xs text-gray-500 tabular-nums">
-                {pageIndex + 1}/{pageCount}
-              </span>
-              <button
-                type="button"
-                onClick={() => setPageIndex((p) => (p >= pageCount - 1 ? 0 : p + 1))}
-                className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-                aria-label="Next page"
-              >
-                <ChevronRight className="w-4 h-4 text-gray-400" />
-              </button>
-            </div>
-          )}
-          <span className="text-xs text-gray-500">Live</span>
-        </div>
+        {items.length > pageSize && (
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setPageIndex((p) => (p <= 0 ? pageCount - 1 : p - 1))}
+              className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+              aria-label="Previous page"
+            >
+              <ChevronLeft className="w-4 h-4 text-gray-400" />
+            </button>
+            <span className="text-xs text-gray-500 tabular-nums">
+              {pageIndex + 1}/{pageCount}
+            </span>
+            <button
+              type="button"
+              onClick={() => setPageIndex((p) => (p >= pageCount - 1 ? 0 : p + 1))}
+              className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+              aria-label="Next page"
+            >
+              <ChevronRight className="w-4 h-4 text-gray-400" />
+            </button>
+          </div>
+        )}
       </div>
 
       {error ? (
@@ -290,7 +285,7 @@ export default function DiamondHandsFeed() {
 
           {items.length > 0 && (
             <div className="mt-4 text-xs text-gray-500 text-right">
-              {lastUpdated ? `Updated ${lastUpdated}` : "Live"}
+              {lastUpdated ? `Updated ${lastUpdated}` : "Refreshes every 10m"}
             </div>
           )}
         </div>
