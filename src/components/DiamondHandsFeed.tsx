@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
-import { Diamond, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, Diamond, ExternalLink } from "lucide-react";
 
 type DiamondHandBuy = {
   createdAt: string | null;
@@ -75,6 +75,8 @@ export default function DiamondHandsFeed() {
   const [items, setItems] = useState<DiamondHandBuy[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [now, setNow] = useState(() => Date.now());
+  const [pageIndex, setPageIndex] = useState(0);
 
   const tableName = useMemo(
     () => import.meta.env.VITE_SUPABASE_DIAMOND_HANDS_TABLE ?? "big_buy_top10",
@@ -85,6 +87,42 @@ export default function DiamondHandsFeed() {
     const raw = import.meta.env.VITE_SUPABASE_DIAMOND_HANDS_LIMIT;
     const parsed = raw ? Number(raw) : 10;
     return Number.isFinite(parsed) ? parsed : 10;
+  }, []);
+
+  const pageSize = 5;
+  const pageCount = useMemo(() => {
+    if (items.length === 0) return 1;
+    return Math.max(1, Math.ceil(items.length / pageSize));
+  }, [items.length]);
+
+  const currentPageItems = useMemo(() => {
+    const start = pageIndex * pageSize;
+    return items.slice(start, start + pageSize);
+  }, [items, pageIndex]);
+
+  const lastUpdated = useMemo(() => {
+    const iso = items[0]?.createdAt;
+    if (!iso) return null;
+    const d = new Date(iso);
+    const ms = d.getTime();
+    if (!Number.isFinite(ms)) return null;
+    const diffMs = now - ms;
+    const diffMin = Math.max(0, Math.round(diffMs / 60000));
+    if (diffMin < 1) return "just now";
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffH = Math.round(diffMin / 60);
+    if (diffH < 24) return `${diffH}h ago`;
+    const diffD = Math.round(diffH / 24);
+    return `${diffD}d ago`;
+  }, [items, now]);
+
+  useEffect(() => {
+    if (pageIndex > pageCount - 1) setPageIndex(0);
+  }, [pageCount, pageIndex]);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNow(Date.now()), 30_000);
+    return () => window.clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -156,7 +194,32 @@ export default function DiamondHandsFeed() {
           <Diamond className="w-4 h-4 text-cyan-300" />
           Diamond Hands
         </div>
-        <span className="text-xs text-gray-500">Live</span>
+        <div className="flex items-center gap-3">
+          {items.length > pageSize && (
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setPageIndex((p) => (p <= 0 ? pageCount - 1 : p - 1))}
+                className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-400" />
+              </button>
+              <span className="text-xs text-gray-500 tabular-nums">
+                {pageIndex + 1}/{pageCount}
+              </span>
+              <button
+                type="button"
+                onClick={() => setPageIndex((p) => (p >= pageCount - 1 ? 0 : p + 1))}
+                className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
+                aria-label="Next page"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-400" />
+              </button>
+            </div>
+          )}
+          <span className="text-xs text-gray-500">Live</span>
+        </div>
       </div>
 
       {error ? (
@@ -165,17 +228,18 @@ export default function DiamondHandsFeed() {
         <p className="text-sm text-gray-400">Loading...</p>
       ) : (
         <div className="space-y-2">
-          {items.map((item, idx) => {
+          {currentPageItems.map((item, idx) => {
+            const globalRank = pageIndex * pageSize + idx + 1;
             const badge = getBadge(item.usdValue);
             const txUrl = item.txSig ? buildTxUrl(item.txSig) : null;
             return (
               <div
-                key={`${item.txSig ?? "na"}-${idx}`}
-                className="rounded-xl border border-white/5 bg-white/5 px-3 py-2"
+                key={`${item.txSig ?? "na"}-${globalRank}`}
+                className="rounded-xl border border-white/5 bg-white/5 px-3 py-2 min-h-[64px] flex flex-col justify-between"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-sm text-gray-400 w-3">#{idx + 1}</span>
+                    <span className="text-sm text-gray-400 w-3">#{globalRank}</span>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 min-w-0">
                         {badge && <span className="text-sm">{badge}</span>}
@@ -221,6 +285,12 @@ export default function DiamondHandsFeed() {
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <Diamond className="w-8 h-8 text-cyan-300/30 mb-3" />
               <p className="text-gray-400 font-medium">No big buys yet.</p>
+            </div>
+          )}
+
+          {items.length > 0 && (
+            <div className="mt-4 text-xs text-gray-500 text-right">
+              {lastUpdated ? `Updated ${lastUpdated}` : "Live"}
             </div>
           )}
         </div>
