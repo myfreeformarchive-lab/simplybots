@@ -108,6 +108,19 @@ const formatDexLabel = (dex: string) => {
     .join(" ");
 };
 
+const shoutoutEmojis = ["📢", "📣", "🙌", "🥳", "👏", "🚀", "💯", "🫡", "❤️", "🔥"] as const;
+
+const pickEmoji = (seed: string | null | undefined) => {
+  const base = (seed ?? "").trim();
+  if (!base) return shoutoutEmojis[0];
+  let hash = 0;
+  for (let i = 0; i < base.length; i++) {
+    hash = (hash * 31 + base.charCodeAt(i)) | 0;
+  }
+  const idx = Math.abs(hash) % shoutoutEmojis.length;
+  return shoutoutEmojis[idx];
+};
+
 type SocialLink = {
   label: string;
   url: string;
@@ -335,7 +348,7 @@ export default function ShoutoutsFeed() {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 min-w-0">
                       <span className="text-sm text-gray-400 w-3">#{idx + 1}</span>
-                      <span className="text-sm">🍌</span>
+                      <span className="text-sm">{pickEmoji(item.txSig ?? item.createdAt ?? item.symbol)}</span>
                       <span className="font-bold text-white truncate">
                         {item.symbol ?? "Big buy"}
                       </span>
