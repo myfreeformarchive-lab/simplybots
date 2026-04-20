@@ -211,12 +211,9 @@ export default function ShoutoutsFeed() {
 
   return (
     <div className="glass-card border border-white/10 rounded-2xl p-6 h-full flex flex-col">
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center gap-2 text-white font-bold">
-          <Megaphone className="w-4 h-4 text-solana-purple" />
-          Shoutouts
-        </div>
-        <span className="text-xs text-gray-500">Live</span>
+      <div className="flex items-center gap-2 text-white font-bold mb-4">
+        <Megaphone className="w-4 h-4 text-solana-purple" />
+        Shoutouts
       </div>
 
       {error ? (
