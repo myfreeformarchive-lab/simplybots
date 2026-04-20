@@ -252,6 +252,24 @@ export default function ShoutoutsFeed() {
   const minUsd = 10_000;
 
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem("simplybots:shoutouts:v1");
+      if (!cached) return;
+      const parsed = JSON.parse(cached) as unknown;
+      if (!parsed || typeof parsed !== "object") return;
+      const record = parsed as { items?: unknown; fetchedAt?: unknown };
+      if (Array.isArray(record.items)) {
+        setItems(record.items as BigBuyShoutout[]);
+      }
+      if (typeof record.fetchedAt === "number" && Number.isFinite(record.fetchedAt)) {
+        setLastFetchAt(record.fetchedAt);
+      }
+    } catch (err) {
+      void err;
+    }
+  }, []);
+
+  useEffect(() => {
     const interval = window.setInterval(() => setNowMs(Date.now()), 30_000);
     return () => window.clearInterval(interval);
   }, []);
@@ -299,7 +317,16 @@ export default function ShoutoutsFeed() {
         .map((r) => normalizeBigBuy(r));
 
       setItems(normalized);
-      setLastFetchAt(Date.now());
+      const fetchedAt = Date.now();
+      setLastFetchAt(fetchedAt);
+      try {
+        localStorage.setItem(
+          "simplybots:shoutouts:v1",
+          JSON.stringify({ items: normalized, fetchedAt }),
+        );
+      } catch (err) {
+        void err;
+      }
       setIsLoading(false);
     };
 
@@ -336,7 +363,41 @@ export default function ShoutoutsFeed() {
       {error ? (
         <p className="text-sm text-red-400">{error}</p>
       ) : isLoading && items.length === 0 ? (
-        <p className="text-sm text-gray-400">Loading...</p>
+        <div className="space-y-2 animate-pulse">
+          <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 min-h-[300px] flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-2 min-w-0">
+                  <div className="h-4 w-4 rounded bg-white/10" />
+                  <div className="h-4 w-6 rounded bg-white/10" />
+                  <div className="h-4 w-24 rounded bg-white/10" />
+                </div>
+                <div className="h-4 w-16 rounded bg-white/10" />
+              </div>
+              <div className="mt-2 h-3 w-48 rounded bg-white/10" />
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                {Array.from({ length: 4 }).map((_, idx) => (
+                  <div key={`skb-${idx}`} className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                    <div className="h-3 w-10 rounded bg-white/10" />
+                    <div className="mt-2 h-4 w-16 rounded bg-white/10" />
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 rounded-lg border border-white/5 bg-white/5 px-3 py-2">
+                <div className="h-3 w-12 rounded bg-white/10" />
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {Array.from({ length: 3 }).map((_, idx) => (
+                    <div key={`sks-${idx}`} className="h-7 w-20 rounded-md bg-white/10" />
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <div className="h-3 w-40 rounded bg-white/10" />
+              <div className="h-3 w-16 rounded bg-white/10" />
+            </div>
+          </div>
+        </div>
       ) : (
         <div className="flex-1 flex flex-col">
           <div className="space-y-2">

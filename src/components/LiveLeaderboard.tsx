@@ -151,6 +151,24 @@ export default function LiveLeaderboard() {
   );
 
   useEffect(() => {
+    try {
+      const cached = localStorage.getItem("simplybots:leaderboard:v1");
+      if (!cached) return;
+      const parsed = JSON.parse(cached) as unknown;
+      if (!parsed || typeof parsed !== "object") return;
+      const record = parsed as { rows?: unknown; fetchedAt?: unknown };
+      if (Array.isArray(record.rows)) {
+        setRows(record.rows as LeaderboardRow[]);
+      }
+      if (typeof record.fetchedAt === "number" && Number.isFinite(record.fetchedAt)) {
+        setLastFetchAt(record.fetchedAt);
+      }
+    } catch (err) {
+      void err;
+    }
+  }, []);
+
+  useEffect(() => {
     const interval = window.setInterval(() => setNowMs(Date.now()), 30_000);
     return () => window.clearInterval(interval);
   }, []);
@@ -212,7 +230,16 @@ export default function LiveLeaderboard() {
         .slice(0, limit);
 
       setRows(normalized);
-      setLastFetchAt(Date.now());
+      const fetchedAt = Date.now();
+      setLastFetchAt(fetchedAt);
+      try {
+        localStorage.setItem(
+          "simplybots:leaderboard:v1",
+          JSON.stringify({ rows: normalized, fetchedAt }),
+        );
+      } catch (err) {
+        void err;
+      }
       setIsLoading(false);
     };
 
@@ -288,7 +315,27 @@ export default function LiveLeaderboard() {
       {error ? (
         <p className="text-sm text-red-400">{error}</p>
       ) : isLoading && rows.length === 0 ? (
-        <p className="text-sm text-gray-400">Loading...</p>
+        <div className="space-y-2 animate-pulse">
+          {Array.from({ length: 5 }).map((_, idx) => (
+            <div
+              key={`sk-${idx}`}
+              className="rounded-xl border border-white/5 bg-white/5 px-3 py-2"
+            >
+              <div className="flex items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="h-4 w-4 rounded bg-white/10" />
+                  <div className="h-4 w-24 rounded bg-white/10" />
+                </div>
+                <div className="h-4 w-12 rounded bg-white/10" />
+              </div>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <div className="h-3 w-20 rounded bg-white/10" />
+                <div className="h-3 w-20 rounded bg-white/10" />
+                <div className="h-3 w-20 rounded bg-white/10" />
+              </div>
+            </div>
+          ))}
+        </div>
       ) : (
         <div>
           <div className="space-y-2">
