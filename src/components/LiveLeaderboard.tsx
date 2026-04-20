@@ -150,17 +150,8 @@ export default function LiveLeaderboard() {
   );
 
   const lastUpdated = useMemo(() => {
-    const iso = rows[0]?.updatedAt;
-    const sourceMs = (() => {
-      if (iso) {
-        const d = new Date(iso);
-        const ms = d.getTime();
-        if (Number.isFinite(ms)) return ms;
-      }
-      return lastFetchAt;
-    })();
-    if (sourceMs == null) return null;
-    const diffMs = Date.now() - sourceMs;
+    if (lastFetchAt == null) return null;
+    const diffMs = Date.now() - lastFetchAt;
     const diffMin = Math.max(0, Math.round(diffMs / 60000));
     if (diffMin < 1) return "just now";
     if (diffMin < 60) return `${diffMin}m ago`;
@@ -168,7 +159,7 @@ export default function LiveLeaderboard() {
     if (diffH < 24) return `${diffH}h ago`;
     const diffD = Math.round(diffH / 24);
     return `${diffD}d ago`;
-  }, [lastFetchAt, rows]);
+  }, [lastFetchAt]);
 
   const pageSize = 5;
   const pageCount = useMemo(() => {

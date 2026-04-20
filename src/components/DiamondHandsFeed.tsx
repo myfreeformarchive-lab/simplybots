@@ -116,17 +116,8 @@ export default function DiamondHandsFeed() {
   }, [items, pageIndex]);
 
   const lastUpdated = useMemo(() => {
-    const iso = items[0]?.createdAt;
-    const sourceMs = (() => {
-      if (iso) {
-        const d = new Date(iso);
-        const ms = d.getTime();
-        if (Number.isFinite(ms)) return ms;
-      }
-      return lastFetchAt;
-    })();
-    if (sourceMs == null) return null;
-    const diffMs = Date.now() - sourceMs;
+    if (lastFetchAt == null) return null;
+    const diffMs = Date.now() - lastFetchAt;
     const diffMin = Math.max(0, Math.round(diffMs / 60000));
     if (diffMin < 1) return "just now";
     if (diffMin < 60) return `${diffMin}m ago`;
@@ -134,7 +125,7 @@ export default function DiamondHandsFeed() {
     if (diffH < 24) return `${diffH}h ago`;
     const diffD = Math.round(diffH / 24);
     return `${diffD}d ago`;
-  }, [items, lastFetchAt]);
+  }, [lastFetchAt]);
 
   useEffect(() => {
     if (pageIndex > pageCount - 1) setPageIndex(0);
