@@ -48,10 +48,46 @@ const formatSol = (value: number) =>
 const buildTxUrl = (txSig: string) =>
   `https://solscan.io/tx/${encodeURIComponent(txSig)}`;
 
+const extractFirstUrl = (value: string) => {
+  const stripped = value.replace(/[`<>]/g, " ").trim();
+  const parts = stripped.split(/\s*\|\s*|\s+/g).filter(Boolean);
+
+  for (const part of parts) {
+    const candidate = part.replace(/[),.;]+$/g, "");
+    if (candidate.startsWith("http://") || candidate.startsWith("https://")) return candidate;
+  }
+
+  return null;
+};
+
+const cleanTextToken = (value: string) => value.replace(/[`<>]/g, "").trim();
+
+const buildTxHref = (txSigOrUrl: string) => {
+  const maybeUrl = extractFirstUrl(txSigOrUrl);
+  if (maybeUrl) {
+    try {
+      const parsed = new URL(maybeUrl);
+      const segments = parsed.pathname.split("/").filter(Boolean);
+      const txIdx = segments.findIndex((s) => s.toLowerCase() === "tx");
+      if (txIdx >= 0 && segments[txIdx + 1]) return buildTxUrl(segments[txIdx + 1]);
+      const last = segments[segments.length - 1];
+      if (last) return buildTxUrl(last);
+    } catch {
+      return maybeUrl;
+    }
+    return maybeUrl;
+  }
+
+  const cleaned = cleanTextToken(txSigOrUrl);
+  return cleaned ? buildTxUrl(cleaned) : null;
+};
+
 const buildBuyerUrl = (buyer: string) => {
-  const trimmed = buyer.trim();
+  const maybeUrl = extractFirstUrl(buyer);
+  if (maybeUrl) return maybeUrl;
+
+  const trimmed = cleanTextToken(buyer);
   if (!trimmed) return null;
-  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
   return `https://solscan.io/account/${encodeURIComponent(trimmed)}`;
 };
 
@@ -85,7 +121,7 @@ const extractSocialLinks = (markdown: string | null): SocialLink[] => {
   const result: SocialLink[] = [];
 
   for (const rawUrl of urls) {
-    const url = rawUrl.trim();
+    const url = rawUrl.trim().replace(/[),.;]+$/g, "");
     if (!url) continue;
     if (seen.has(url)) continue;
     seen.add(url);
@@ -316,7 +352,7 @@ export default function ShoutoutsFeed() {
                   <div className="shrink-0 flex items-center gap-2">
                     {item.chartUrl ? (
                       <a
-                        href={item.chartUrl}
+                        href={extractFirstUrl(item.chartUrl) ?? item.chartUrl}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
@@ -328,7 +364,7 @@ export default function ShoutoutsFeed() {
                     ) : null}
                     {item.txSig ? (
                       <a
-                        href={buildTxUrl(item.txSig)}
+                        href={buildTxHref(item.txSig) ?? undefined}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
