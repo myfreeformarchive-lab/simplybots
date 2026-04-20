@@ -28,7 +28,7 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row items-center justify-between pt-8 border-t border-white/10 text-sm text-gray-600">
           <div className="text-center md:text-left">
             <p>© {new Date().getFullYear()} SimplyBots. All rights reserved.</p>
-            <p className="mt-1 text-xs text-gray-500">Built on Solana</p>
+            <p className="mt-1">Built on Solana</p>
           </div>
         </div>
       </div>
