@@ -82,7 +82,6 @@ export default function DiamondHandsFeed() {
   const [items, setItems] = useState<DiamondHandBuy[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [now, setNow] = useState(() => Date.now());
   const [pageIndex, setPageIndex] = useState(0);
   const [lastFetchAt, setLastFetchAt] = useState<number | null>(null);
 
@@ -127,7 +126,7 @@ export default function DiamondHandsFeed() {
       return lastFetchAt;
     })();
     if (sourceMs == null) return null;
-    const diffMs = now - sourceMs;
+    const diffMs = Date.now() - sourceMs;
     const diffMin = Math.max(0, Math.round(diffMs / 60000));
     if (diffMin < 1) return "just now";
     if (diffMin < 60) return `${diffMin}m ago`;
@@ -135,16 +134,11 @@ export default function DiamondHandsFeed() {
     if (diffH < 24) return `${diffH}h ago`;
     const diffD = Math.round(diffH / 24);
     return `${diffD}d ago`;
-  }, [items, lastFetchAt, now]);
+  }, [items, lastFetchAt]);
 
   useEffect(() => {
     if (pageIndex > pageCount - 1) setPageIndex(0);
   }, [pageCount, pageIndex]);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => setNow(Date.now()), 30_000);
-    return () => window.clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase || !tableName) return;

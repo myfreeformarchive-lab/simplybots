@@ -119,8 +119,8 @@ export default function LiveLeaderboard() {
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [now, setNow] = useState(() => Date.now());
   const [pageIndex, setPageIndex] = useState(0);
+  const [lastFetchAt, setLastFetchAt] = useState<number | null>(null);
 
   const hasSupabaseUrl = Boolean(import.meta.env.VITE_SUPABASE_URL);
   const hasSupabaseAnonKey = Boolean(import.meta.env.VITE_SUPABASE_ANON_KEY);
@@ -140,8 +140,8 @@ export default function LiveLeaderboard() {
 
   const refreshMs = useMemo(() => {
     const raw = import.meta.env.VITE_SUPABASE_LEADERBOARD_POLL_MS;
-    const parsed = raw ? Number(raw) : 60_000;
-    return Number.isFinite(parsed) ? parsed : 60_000;
+    const parsed = raw ? Number(raw) : 600_000;
+    return Number.isFinite(parsed) ? parsed : 600_000;
   }, []);
 
   const dexscreenerChain = useMemo(
@@ -151,11 +151,16 @@ export default function LiveLeaderboard() {
 
   const lastUpdated = useMemo(() => {
     const iso = rows[0]?.updatedAt;
-    if (!iso) return null;
-    const d = new Date(iso);
-    const ms = d.getTime();
-    if (!Number.isFinite(ms)) return null;
-    const diffMs = now - ms;
+    const sourceMs = (() => {
+      if (iso) {
+        const d = new Date(iso);
+        const ms = d.getTime();
+        if (Number.isFinite(ms)) return ms;
+      }
+      return lastFetchAt;
+    })();
+    if (sourceMs == null) return null;
+    const diffMs = Date.now() - sourceMs;
     const diffMin = Math.max(0, Math.round(diffMs / 60000));
     if (diffMin < 1) return "just now";
     if (diffMin < 60) return `${diffMin}m ago`;
@@ -163,7 +168,7 @@ export default function LiveLeaderboard() {
     if (diffH < 24) return `${diffH}h ago`;
     const diffD = Math.round(diffH / 24);
     return `${diffD}d ago`;
-  }, [now, rows]);
+  }, [lastFetchAt, rows]);
 
   const pageSize = 5;
   const pageCount = useMemo(() => {
@@ -179,11 +184,6 @@ export default function LiveLeaderboard() {
   useEffect(() => {
     if (pageIndex > pageCount - 1) setPageIndex(0);
   }, [pageCount, pageIndex]);
-
-  useEffect(() => {
-    const interval = window.setInterval(() => setNow(Date.now()), 30_000);
-    return () => window.clearInterval(interval);
-  }, []);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
@@ -215,6 +215,7 @@ export default function LiveLeaderboard() {
         .slice(0, limit);
 
       setRows(normalized);
+      setLastFetchAt(Date.now());
       setIsLoading(false);
     };
 
@@ -355,7 +356,7 @@ export default function LiveLeaderboard() {
           </div>
 
           <div className="mt-4 text-xs text-gray-500 text-right">
-            {lastUpdated ? `Updated ${lastUpdated}` : "Live"}
+            {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
           </div>
         </div>
       )}
