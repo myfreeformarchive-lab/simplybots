@@ -85,6 +85,7 @@ export default function DiamondHandsFeed() {
   const [pageIndex, setPageIndex] = useState(0);
   const [lastFetchAt, setLastFetchAt] = useState<number | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [isCacheHydrated, setIsCacheHydrated] = useState(false);
 
   const tableName = useMemo(
     () => import.meta.env.VITE_SUPABASE_DIAMOND_HANDS_TABLE ?? "big_buy_top10",
@@ -131,6 +132,8 @@ export default function DiamondHandsFeed() {
       }
     } catch (err) {
       void err;
+    } finally {
+      setIsCacheHydrated(true);
     }
   }, []);
 
@@ -157,8 +160,11 @@ export default function DiamondHandsFeed() {
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase || !tableName) return;
+    if (!isCacheHydrated) return;
 
     let cancelled = false;
+    let interval: number | null = null;
+    let timeout: number | null = null;
 
     const fetchItems = async () => {
       setIsLoading(true);
@@ -196,14 +202,25 @@ export default function DiamondHandsFeed() {
       setIsLoading(false);
     };
 
-    fetchItems();
-    const interval = window.setInterval(fetchItems, refreshMs);
+    const ageMs = lastFetchAt == null ? Number.POSITIVE_INFINITY : Date.now() - lastFetchAt;
+    const delayMs = ageMs >= refreshMs ? 0 : Math.max(0, refreshMs - ageMs);
+
+    if (delayMs === 0) {
+      fetchItems();
+      interval = window.setInterval(fetchItems, refreshMs);
+    } else {
+      timeout = window.setTimeout(() => {
+        fetchItems();
+        interval = window.setInterval(fetchItems, refreshMs);
+      }, delayMs);
+    }
 
     return () => {
       cancelled = true;
-      window.clearInterval(interval);
+      if (timeout != null) window.clearTimeout(timeout);
+      if (interval != null) window.clearInterval(interval);
     };
-  }, [limit, refreshMs, tableName]);
+  }, [isCacheHydrated, lastFetchAt, limit, refreshMs, tableName]);
 
   if (!isSupabaseConfigured) {
     return (

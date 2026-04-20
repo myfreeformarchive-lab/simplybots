@@ -122,6 +122,7 @@ export default function LiveLeaderboard() {
   const [pageIndex, setPageIndex] = useState(0);
   const [lastFetchAt, setLastFetchAt] = useState<number | null>(null);
   const [nowMs, setNowMs] = useState(() => Date.now());
+  const [isCacheHydrated, setIsCacheHydrated] = useState(false);
 
   const hasSupabaseUrl = Boolean(import.meta.env.VITE_SUPABASE_URL);
   const hasSupabaseAnonKey = Boolean(import.meta.env.VITE_SUPABASE_ANON_KEY);
@@ -165,6 +166,8 @@ export default function LiveLeaderboard() {
       }
     } catch (err) {
       void err;
+    } finally {
+      setIsCacheHydrated(true);
     }
   }, []);
 
@@ -202,8 +205,11 @@ export default function LiveLeaderboard() {
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) return;
+    if (!isCacheHydrated) return;
 
     let cancelled = false;
+    let interval: number | null = null;
+    let timeout: number | null = null;
 
     const fetchRows = async () => {
       setIsLoading(true);
@@ -243,15 +249,25 @@ export default function LiveLeaderboard() {
       setIsLoading(false);
     };
 
-    fetchRows();
+    const ageMs = lastFetchAt == null ? Number.POSITIVE_INFINITY : Date.now() - lastFetchAt;
+    const delayMs = ageMs >= refreshMs ? 0 : Math.max(0, refreshMs - ageMs);
 
-    const interval = window.setInterval(fetchRows, refreshMs);
+    if (delayMs === 0) {
+      fetchRows();
+      interval = window.setInterval(fetchRows, refreshMs);
+    } else {
+      timeout = window.setTimeout(() => {
+        fetchRows();
+        interval = window.setInterval(fetchRows, refreshMs);
+      }, delayMs);
+    }
 
     return () => {
       cancelled = true;
-      window.clearInterval(interval);
+      if (timeout != null) window.clearTimeout(timeout);
+      if (interval != null) window.clearInterval(interval);
     };
-  }, [limit, refreshMs, viewName]);
+  }, [isCacheHydrated, lastFetchAt, limit, refreshMs, viewName]);
 
   if (!isSupabaseConfigured) {
     return (
