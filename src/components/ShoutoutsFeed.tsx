@@ -228,6 +228,7 @@ export default function ShoutoutsFeed() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFetchAt, setLastFetchAt] = useState<number | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   const tableName = useMemo(
     () => import.meta.env.VITE_SUPABASE_SHOUTOUTS_TABLE ?? "big_buy_top10",
@@ -240,11 +241,24 @@ export default function ShoutoutsFeed() {
     return Number.isFinite(parsed) ? parsed : 3;
   }, []);
 
+  const refreshMs = useMemo(() => {
+    const raw =
+      import.meta.env.VITE_SUPABASE_SHOUTOUTS_POLL_MS ??
+      import.meta.env.VITE_SUPABASE_LEADERBOARD_POLL_MS;
+    const parsed = raw ? Number(raw) : 600_000;
+    return Number.isFinite(parsed) ? parsed : 600_000;
+  }, []);
+
   const minUsd = 10_000;
+
+  useEffect(() => {
+    const interval = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(interval);
+  }, []);
 
   const lastUpdated = useMemo(() => {
     if (lastFetchAt == null) return null;
-    const diffMs = Date.now() - lastFetchAt;
+    const diffMs = nowMs - lastFetchAt;
     const diffMin = Math.max(0, Math.round(diffMs / 60000));
     if (diffMin < 1) return "just now";
     if (diffMin < 60) return `${diffMin}m ago`;
@@ -252,7 +266,7 @@ export default function ShoutoutsFeed() {
     if (diffH < 24) return `${diffH}h ago`;
     const diffD = Math.round(diffH / 24);
     return `${diffD}d ago`;
-  }, [lastFetchAt]);
+  }, [lastFetchAt, nowMs]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase || !tableName) return;
@@ -290,21 +304,13 @@ export default function ShoutoutsFeed() {
     };
 
     fetchItems();
-
-    const channel = supabase
-      .channel("shoutouts")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: tableName },
-        () => fetchItems(),
-      )
-      .subscribe();
+    const interval = window.setInterval(fetchItems, refreshMs);
 
     return () => {
       cancelled = true;
-      supabase.removeChannel(channel);
+      window.clearInterval(interval);
     };
-  }, [limit, tableName]);
+  }, [limit, refreshMs, tableName]);
 
   if (!isSupabaseConfigured || !tableName) {
     return (

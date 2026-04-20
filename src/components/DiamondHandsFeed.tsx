@@ -84,6 +84,7 @@ export default function DiamondHandsFeed() {
   const [error, setError] = useState<string | null>(null);
   const [pageIndex, setPageIndex] = useState(0);
   const [lastFetchAt, setLastFetchAt] = useState<number | null>(null);
+  const [nowMs, setNowMs] = useState(() => Date.now());
 
   const tableName = useMemo(
     () => import.meta.env.VITE_SUPABASE_DIAMOND_HANDS_TABLE ?? "big_buy_top10",
@@ -115,9 +116,14 @@ export default function DiamondHandsFeed() {
     return items.slice(start, start + pageSize);
   }, [items, pageIndex]);
 
+  useEffect(() => {
+    const interval = window.setInterval(() => setNowMs(Date.now()), 30_000);
+    return () => window.clearInterval(interval);
+  }, []);
+
   const lastUpdated = useMemo(() => {
     if (lastFetchAt == null) return null;
-    const diffMs = Date.now() - lastFetchAt;
+    const diffMs = nowMs - lastFetchAt;
     const diffMin = Math.max(0, Math.round(diffMs / 60000));
     if (diffMin < 1) return "just now";
     if (diffMin < 60) return `${diffMin}m ago`;
@@ -125,7 +131,7 @@ export default function DiamondHandsFeed() {
     if (diffH < 24) return `${diffH}h ago`;
     const diffD = Math.round(diffH / 24);
     return `${diffD}d ago`;
-  }, [lastFetchAt]);
+  }, [lastFetchAt, nowMs]);
 
   useEffect(() => {
     if (pageIndex > pageCount - 1) setPageIndex(0);
