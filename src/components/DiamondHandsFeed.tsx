@@ -98,7 +98,9 @@ export default function DiamondHandsFeed() {
   }, []);
 
   const refreshMs = useMemo(() => {
-    const raw = import.meta.env.VITE_SUPABASE_LEADERBOARD_POLL_MS;
+    const raw =
+      import.meta.env.VITE_SUPABASE_DIAMOND_HANDS_POLL_MS ??
+      import.meta.env.VITE_SUPABASE_LEADERBOARD_POLL_MS;
     const parsed = raw ? Number(raw) : 600_000;
     return Number.isFinite(parsed) ? parsed : 600_000;
   }, []);
