@@ -126,9 +126,11 @@ const extractSocialLinks = (markdown: string | null): SocialLink[] => {
     if (seen.has(url)) continue;
     seen.add(url);
 
+    let parsed: URL;
     let hostname = "";
     try {
-      hostname = new URL(url).hostname.toLowerCase();
+      parsed = new URL(url);
+      hostname = parsed.hostname.toLowerCase();
     } catch {
       continue;
     }
@@ -136,7 +138,8 @@ const extractSocialLinks = (markdown: string | null): SocialLink[] => {
     const isIgnore =
       hostname.includes("solscan.io") ||
       hostname.includes("dexscreener.com") ||
-      hostname.includes("pump.fun");
+      hostname.includes("pump.fun") ||
+      (hostname === "t.me" && parsed.pathname.toLowerCase() === "/solbananabot");
 
     if (isIgnore) continue;
 
