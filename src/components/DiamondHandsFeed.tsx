@@ -254,6 +254,7 @@ export default function DiamondHandsFeed() {
                       <span className="text-sm text-gray-400 w-3">#{globalRank}</span>
                       <div className="min-w-0">
                         <div className="flex items-center gap-2 min-w-0">
+                          {globalRank === 1 && <span className="text-sm">💎</span>}
                           {badge && <span className="text-sm">{badge}</span>}
                           <span className="font-bold text-white truncate">
                             {item.symbol ?? "—"}
