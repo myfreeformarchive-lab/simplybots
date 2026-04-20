@@ -4,10 +4,13 @@ import { ExternalLink, Megaphone } from "lucide-react";
 
 type BigBuyShoutout = {
   createdAt: string | null;
+  tokenAddress: string | null;
   symbol: string | null;
   buyer: string | null;
   usdValue: number | null;
   solSpent: number | null;
+  tokensReceived: number | null;
+  dex: string | null;
   txSig: string | null;
   chartUrl: string | null;
   messageMarkdown: string | null;
@@ -31,27 +34,42 @@ const formatUsd = (value: number) =>
     maximumFractionDigits: 0,
   }).format(value);
 
+const formatCompact = (value: number) => {
+  if (!Number.isFinite(value)) return "—";
+  return new Intl.NumberFormat(undefined, {
+    notation: "compact",
+    maximumFractionDigits: 2,
+  }).format(value);
+};
+
+const formatSol = (value: number) =>
+  new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
+
 const buildTxUrl = (txSig: string) =>
   `https://solscan.io/tx/${encodeURIComponent(txSig)}`;
 
-const renderMarkdownLite = (text: string) => {
-  const parts = text.split(/(https?:\/\/[^\s`|]+)(?=[`|\s]|$)/g);
-  return parts.map((part, idx) => {
-    if (part.startsWith("http://") || part.startsWith("https://")) {
-      return (
-        <a
-          key={`u-${idx}`}
-          href={part}
-          target="_blank"
-          rel="noreferrer"
-          className="underline decoration-white/20 hover:decoration-white/60 hover:text-white transition-colors break-all"
-        >
-          {part}
-        </a>
-      );
-    }
-    return <span key={`t-${idx}`}>{part}</span>;
-  });
+const buildBuyerUrl = (buyer: string) => {
+  const trimmed = buyer.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+  return `https://solscan.io/account/${encodeURIComponent(trimmed)}`;
+};
+
+const shorten = (value: string, head = 4, tail = 4) => {
+  const trimmed = value.trim();
+  if (!trimmed) return "—";
+  if (trimmed.length <= head + tail + 3) return trimmed;
+  return `${trimmed.slice(0, head)}…${trimmed.slice(-tail)}`;
+};
+
+const formatDexLabel = (dex: string) => {
+  const trimmed = dex.trim();
+  if (!trimmed) return null;
+  return trimmed
+    .split(/[_\-\s]+/g)
+    .filter(Boolean)
+    .map((part) => part.slice(0, 1).toUpperCase() + part.slice(1))
+    .join(" ");
 };
 
 const normalizeBigBuy = (raw: Record<string, unknown>): BigBuyShoutout => {
@@ -62,20 +80,32 @@ const normalizeBigBuy = (raw: Record<string, unknown>): BigBuyShoutout => {
     getString(raw.time) ??
     null;
 
+  const tokenAddress =
+    getString(raw.token_address) ??
+    getString(raw.mint) ??
+    getString(raw.contract_address) ??
+    null;
+
   const symbol = getString(raw.symbol) ?? null;
   const buyer = getString(raw.buyer) ?? null;
   const usdValue = getNumber(raw.usd_value) ?? null;
   const solSpent = getNumber(raw.sol_spent) ?? null;
+  const tokensReceived =
+    getNumber(raw.tokens_received) ?? getNumber(raw.amount_out) ?? null;
+  const dex = getString(raw.dex) ?? null;
   const txSig = getString(raw.tx_sig) ?? null;
   const chartUrl = getString(raw.chart_url) ?? null;
   const messageMarkdown = getString(raw.message_markdown) ?? null;
 
   return {
     createdAt,
+    tokenAddress,
     symbol,
     buyer,
     usdValue,
     solSpent,
+    tokensReceived,
+    dex,
     txSig,
     chartUrl,
     messageMarkdown,
@@ -86,6 +116,7 @@ export default function ShoutoutsFeed() {
   const [items, setItems] = useState<BigBuyShoutout[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastFetchAt, setLastFetchAt] = useState<number | null>(null);
 
   const tableName = useMemo(
     () => import.meta.env.VITE_SUPABASE_SHOUTOUTS_TABLE ?? "big_buy_top10",
@@ -100,6 +131,18 @@ export default function ShoutoutsFeed() {
 
   const minUsd = 10_000;
 
+  const lastUpdated = useMemo(() => {
+    if (lastFetchAt == null) return null;
+    const diffMs = Date.now() - lastFetchAt;
+    const diffMin = Math.max(0, Math.round(diffMs / 60000));
+    if (diffMin < 1) return "just now";
+    if (diffMin < 60) return `${diffMin}m ago`;
+    const diffH = Math.round(diffMin / 60);
+    if (diffH < 24) return `${diffH}h ago`;
+    const diffD = Math.round(diffH / 24);
+    return `${diffD}d ago`;
+  }, [lastFetchAt]);
+
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase || !tableName) return;
 
@@ -111,7 +154,7 @@ export default function ShoutoutsFeed() {
       const { data, error } = await supabase
         .from(tableName)
         .select(
-          "created_ts,symbol,buyer,sol_spent,usd_value,tx_sig,chart_url,message_markdown",
+          "created_ts,token_address,symbol,buyer,sol_spent,usd_value,tokens_received,dex,tx_sig,chart_url,message_markdown",
         )
         .gte("usd_value", minUsd)
         .order("usd_value", { ascending: false })
@@ -131,6 +174,7 @@ export default function ShoutoutsFeed() {
         .map((r) => normalizeBigBuy(r));
 
       setItems(normalized);
+      setLastFetchAt(Date.now());
       setIsLoading(false);
     };
 
@@ -153,7 +197,7 @@ export default function ShoutoutsFeed() {
 
   if (!isSupabaseConfigured || !tableName) {
     return (
-      <div className="glass-card border border-white/10 rounded-2xl p-6">
+      <div className="glass-card border border-white/10 rounded-2xl p-6 h-full flex flex-col">
         <div className="flex items-center gap-2 text-white font-bold mb-2">
           <Megaphone className="w-4 h-4 text-solana-purple" />
           Shoutouts
@@ -166,7 +210,7 @@ export default function ShoutoutsFeed() {
   }
 
   return (
-    <div className="glass-card border border-white/10 rounded-2xl p-6">
+    <div className="glass-card border border-white/10 rounded-2xl p-6 h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2 text-white font-bold">
           <Megaphone className="w-4 h-4 text-solana-purple" />
@@ -180,73 +224,125 @@ export default function ShoutoutsFeed() {
       ) : isLoading && items.length === 0 ? (
         <p className="text-sm text-gray-400">Loading...</p>
       ) : (
-        <div className="space-y-2">
+        <div className="flex-1 flex flex-col">
+          <div className="space-y-2">
           {items.map((item, idx) => (
             <div
               key={`${item.txSig ?? item.createdAt ?? "na"}-${idx}`}
-              className="rounded-xl border border-white/5 bg-white/5 px-3 py-2"
+              className="rounded-xl border border-white/5 bg-white/5 px-3 py-3 flex flex-col justify-between min-h-[220px]"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className="text-sm text-gray-400 w-3">#{idx + 1}</span>
-                    <span className="font-bold text-white truncate">
-                      {item.symbol ?? "Big buy"}
-                    </span>
-                    {item.usdValue != null && (
-                      <span className="text-sm font-bold text-banana tabular-nums">
-                        {formatUsd(item.usdValue)}
+              <div className="min-w-0">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="text-sm text-gray-400 w-3">#{idx + 1}</span>
+                      <span className="text-sm">🍌</span>
+                      <span className="font-bold text-white truncate">
+                        {item.symbol ?? "Big buy"}
                       </span>
-                    )}
+                      {item.usdValue != null && (
+                        <span className="text-sm font-bold text-banana tabular-nums">
+                          {formatUsd(item.usdValue)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="mt-1 text-xs text-gray-400 truncate">
+                      {item.dex ? (formatDexLabel(item.dex) ?? item.dex) : "—"}
+                      {item.solSpent != null ? ` · ${formatSol(item.solSpent)} SOL` : ""}
+                      {item.tokensReceived != null ? ` · Got ${formatCompact(item.tokensReceived)}` : ""}
+                    </div>
                   </div>
-                  <div className="mt-1 text-xs text-gray-400">
-                    {item.solSpent == null ? "—" : `${item.solSpent.toFixed(2)} SOL`}
+
+                  <div className="shrink-0 flex items-center gap-2">
+                    {item.chartUrl ? (
+                      <a
+                        href={item.chartUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
+                        title={item.chartUrl}
+                      >
+                        <span>Chart</span>
+                        <ExternalLink className="w-3 h-3 text-white/50" />
+                      </a>
+                    ) : null}
+                    {item.txSig ? (
+                      <a
+                        href={buildTxUrl(item.txSig)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
+                        title={item.txSig}
+                      >
+                        <span>Tx</span>
+                        <ExternalLink className="w-3 h-3 text-white/50" />
+                      </a>
+                    ) : null}
                   </div>
                 </div>
-                <div className="shrink-0 flex items-center gap-2">
-                  {item.chartUrl ? (
-                    <a
-                      href={item.chartUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
-                      title={item.chartUrl}
-                    >
-                      <span>Chart</span>
-                      <ExternalLink className="w-3 h-3 text-white/50" />
-                    </a>
-                  ) : null}
-                  {item.txSig ? (
-                    <a
-                      href={buildTxUrl(item.txSig)}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
-                      title={item.txSig}
-                    >
-                      <span>Tx</span>
-                      <ExternalLink className="w-3 h-3 text-white/50" />
-                    </a>
-                  ) : null}
+
+                <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-gray-300">
+                  <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                    <div className="text-[10px] text-gray-500">SOL</div>
+                    <div className="font-bold text-white tabular-nums">
+                      {item.solSpent == null ? "—" : formatSol(item.solSpent)}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                    <div className="text-[10px] text-gray-500">USD</div>
+                    <div className="font-bold text-white tabular-nums">
+                      {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                    <div className="text-[10px] text-gray-500">Got</div>
+                    <div className="font-bold text-white tabular-nums">
+                      {item.tokensReceived == null ? "—" : formatCompact(item.tokensReceived)}
+                    </div>
+                  </div>
+                  <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                    <div className="text-[10px] text-gray-500">Token</div>
+                    <div className="font-bold text-white tabular-nums truncate">
+                      {item.tokenAddress == null ? "—" : shorten(item.tokenAddress, 6, 4)}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {item.messageMarkdown ? (
-                <div className="mt-2 text-xs text-gray-300 whitespace-pre-wrap break-words leading-relaxed">
-                  {renderMarkdownLite(item.messageMarkdown)}
-                </div>
-              ) : null}
+              <div className="mt-4 flex items-center justify-between gap-3">
+                {item.buyer ? (
+                  <a
+                    href={buildBuyerUrl(item.buyer) ?? undefined}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-xs text-gray-400 truncate min-w-0 hover:text-white transition-colors"
+                    title={item.buyer}
+                  >
+                    Buyer · {shorten(item.buyer, 6, 4)}
+                  </a>
+                ) : (
+                  <span className="text-xs text-gray-500">Buyer · —</span>
+                )}
+                <span className="text-xs text-gray-600 tabular-nums">
+                  {item.createdAt ?? ""}
+                </span>
+              </div>
             </div>
           ))}
+          </div>
 
           {items.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
+            <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
               <Megaphone className="w-8 h-8 text-solana-purple/30 mb-3" />
               <p className="text-gray-400 font-medium">
                 No big buy shoutouts yet.
               </p>
             </div>
           )}
+
+          <div className="mt-4 text-xs text-gray-500 text-right">
+            {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
+          </div>
         </div>
       )}
     </div>
