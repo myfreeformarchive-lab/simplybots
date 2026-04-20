@@ -43,6 +43,13 @@ const formatSol = (value: number) =>
 const buildTxUrl = (txSig: string) =>
   `https://solscan.io/tx/${encodeURIComponent(txSig)}`;
 
+const buildBuyerUrl = (buyer: string) => {
+  const trimmed = buyer.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
+  return `https://solscan.io/account/${encodeURIComponent(trimmed)}`;
+};
+
 const getBadge = (usdValue: number | null) => {
   if (usdValue == null) return null;
   if (usdValue >= 2000) return "👑";
@@ -251,9 +258,17 @@ export default function DiamondHandsFeed() {
                           <span className="font-bold text-white truncate">
                             {item.symbol ?? "—"}
                           </span>
-                          <span className="text-xs text-gray-400 truncate min-w-0">
-                            {item.buyer ? `· ${shorten(item.buyer)}` : ""}
-                          </span>
+                        {item.buyer ? (
+                          <a
+                            href={buildBuyerUrl(item.buyer) ?? undefined}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-xs text-gray-400 truncate min-w-0 hover:text-white transition-colors"
+                            title={item.buyer}
+                          >
+                            · {shorten(item.buyer)}
+                          </a>
+                        ) : null}
                         </div>
                       </div>
                     </div>
