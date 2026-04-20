@@ -77,6 +77,7 @@ export default function DiamondHandsFeed() {
   const [error, setError] = useState<string | null>(null);
   const [now, setNow] = useState(() => Date.now());
   const [pageIndex, setPageIndex] = useState(0);
+  const [lastFetchAt, setLastFetchAt] = useState<number | null>(null);
 
   const tableName = useMemo(
     () => import.meta.env.VITE_SUPABASE_DIAMOND_HANDS_TABLE ?? "big_buy_top10",
@@ -108,11 +109,16 @@ export default function DiamondHandsFeed() {
 
   const lastUpdated = useMemo(() => {
     const iso = items[0]?.createdAt;
-    if (!iso) return null;
-    const d = new Date(iso);
-    const ms = d.getTime();
-    if (!Number.isFinite(ms)) return null;
-    const diffMs = now - ms;
+    const sourceMs = (() => {
+      if (iso) {
+        const d = new Date(iso);
+        const ms = d.getTime();
+        if (Number.isFinite(ms)) return ms;
+      }
+      return lastFetchAt;
+    })();
+    if (sourceMs == null) return null;
+    const diffMs = now - sourceMs;
     const diffMin = Math.max(0, Math.round(diffMs / 60000));
     if (diffMin < 1) return "just now";
     if (diffMin < 60) return `${diffMin}m ago`;
@@ -120,7 +126,7 @@ export default function DiamondHandsFeed() {
     if (diffH < 24) return `${diffH}h ago`;
     const diffD = Math.round(diffH / 24);
     return `${diffD}d ago`;
-  }, [items, now]);
+  }, [items, lastFetchAt, now]);
 
   useEffect(() => {
     if (pageIndex > pageCount - 1) setPageIndex(0);
@@ -159,6 +165,7 @@ export default function DiamondHandsFeed() {
         .map((r) => normalizeBuy(r));
 
       setItems(normalized);
+      setLastFetchAt(Date.now());
       setIsLoading(false);
     };
 
@@ -285,7 +292,7 @@ export default function DiamondHandsFeed() {
 
           {items.length > 0 && (
             <div className="mt-4 text-xs text-gray-500 text-right">
-              {lastUpdated ? `Updated ${lastUpdated}` : "Refreshes every 10m"}
+              {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
             </div>
           )}
         </div>
