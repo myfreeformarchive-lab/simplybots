@@ -199,29 +199,31 @@ export default function DiamondHandsFeed() {
           <Diamond className="w-4 h-4 text-cyan-300" />
           Diamond Hands
         </div>
-        {items.length > pageSize && (
+        <div className="flex items-center gap-3">
           <div className="flex items-center gap-1">
             <button
               type="button"
-              onClick={() => setPageIndex((p) => (p <= 0 ? pageCount - 1 : p - 1))}
-              className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-              aria-label="Previous page"
+              aria-label="Previous"
+              disabled={pageIndex === 0 || items.length === 0}
+              onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
+              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
             >
-              <ChevronLeft className="w-4 h-4 text-gray-400" />
+              <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="text-xs text-gray-500 tabular-nums">
-              {pageIndex + 1}/{pageCount}
-            </span>
+            <div className="min-w-[52px] text-center text-xs text-gray-500 tabular-nums">
+              {Math.min(pageIndex + 1, pageCount)}/{pageCount}
+            </div>
             <button
               type="button"
-              onClick={() => setPageIndex((p) => (p >= pageCount - 1 ? 0 : p + 1))}
-              className="w-8 h-8 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
-              aria-label="Next page"
+              aria-label="Next"
+              disabled={pageIndex >= pageCount - 1 || items.length === 0}
+              onClick={() => setPageIndex((p) => Math.min(pageCount - 1, p + 1))}
+              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
             >
-              <ChevronRight className="w-4 h-4 text-gray-400" />
+              <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-        )}
+        </div>
       </div>
 
       {error ? (
@@ -229,72 +231,69 @@ export default function DiamondHandsFeed() {
       ) : isLoading && items.length === 0 ? (
         <p className="text-sm text-gray-400">Loading...</p>
       ) : (
-        <div className="space-y-2">
-          {currentPageItems.map((item, idx) => {
-            const globalRank = pageIndex * pageSize + idx + 1;
-            const badge = getBadge(item.usdValue);
-            const txUrl = item.txSig ? buildTxUrl(item.txSig) : null;
-            return (
-              <div
-                key={`${item.txSig ?? "na"}-${globalRank}`}
-                className="rounded-xl border border-white/5 bg-white/5 px-3 py-2 min-h-[56px] flex flex-col justify-between"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-sm text-gray-400 w-3">#{globalRank}</span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2 min-w-0">
-                        {badge && <span className="text-sm">{badge}</span>}
-                        <span className="font-bold text-white truncate">
-                          {item.symbol ?? "—"}
-                        </span>
-                        <span className="text-xs text-gray-400 truncate min-w-0">
-                          {item.buyer ? `· ${shorten(item.buyer)}` : ""}
-                        </span>
+        <div>
+          <div className="space-y-2">
+            {currentPageItems.map((item, idx) => {
+              const globalRank = pageIndex * pageSize + idx + 1;
+              const badge = getBadge(item.usdValue);
+              const txUrl = item.txSig ? buildTxUrl(item.txSig) : null;
+              return (
+                <div
+                  key={`${item.txSig ?? "na"}-${globalRank}`}
+                  className="rounded-xl border border-white/5 bg-white/5 px-3 py-2 min-h-[56px] flex flex-col justify-between"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-sm text-gray-400 w-3">#{globalRank}</span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {badge && <span className="text-sm">{badge}</span>}
+                          <span className="font-bold text-white truncate">
+                            {item.symbol ?? "—"}
+                          </span>
+                          <span className="text-xs text-gray-400 truncate min-w-0">
+                            {item.buyer ? `· ${shorten(item.buyer)}` : ""}
+                          </span>
+                        </div>
                       </div>
                     </div>
+                    <span className="text-sm font-bold text-banana tabular-nums">
+                      {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
+                    </span>
                   </div>
-                  <span className="text-sm font-bold text-banana tabular-nums">
-                    {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
-                  </span>
+                  <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
+                    <span className="tabular-nums">
+                      SOL {item.solSpent == null ? "—" : formatSol(item.solSpent)}
+                    </span>
+                    {txUrl ? (
+                      <a
+                        href={txUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 hover:text-white transition-colors"
+                        title={item.txSig ?? undefined}
+                      >
+                        <span className="tabular-nums">
+                          {item.txSig ? shorten(item.txSig, 6, 6) : "Tx"}
+                        </span>
+                        <ExternalLink className="w-3 h-3 text-white/50" />
+                      </a>
+                    ) : (
+                      <span>—</span>
+                    )}
+                  </div>
                 </div>
-                <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
-                  <span className="tabular-nums">
-                    SOL {item.solSpent == null ? "—" : formatSol(item.solSpent)}
-                  </span>
-                  {txUrl ? (
-                    <a
-                      href={txUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 hover:text-white transition-colors"
-                      title={item.txSig ?? undefined}
-                    >
-                      <span className="tabular-nums">
-                        {item.txSig ? shorten(item.txSig, 6, 6) : "Tx"}
-                      </span>
-                      <ExternalLink className="w-3 h-3 text-white/50" />
-                    </a>
-                  ) : (
-                    <span>—</span>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
-          {items.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Diamond className="w-8 h-8 text-cyan-300/30 mb-3" />
-              <p className="text-gray-400 font-medium">No big buys yet.</p>
-            </div>
-          )}
+            {items.length === 0 && (
+              <p className="text-sm text-gray-400">No data yet.</p>
+            )}
+          </div>
 
-          {items.length > 0 && (
-            <div className="mt-4 text-xs text-gray-500 text-right">
-              {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
-            </div>
-          )}
+          <div className="mt-4 text-xs text-gray-500 text-right">
+            {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
+          </div>
         </div>
       )}
     </div>
