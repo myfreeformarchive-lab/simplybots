@@ -772,14 +772,7 @@ export default function ShoutoutsFeed() {
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-3">
-                <span className="text-xs text-gray-500 truncate min-w-0">
-                  Template · {activeCard.item.templateKey ?? "default"}
-                </span>
-                <span className="text-xs text-gray-600 tabular-nums">
-                  {activeCard.item.sentAt ?? activeCard.item.createdAt ?? ""}
-                </span>
-              </div>
+              <div className="mt-4" />
             </div>
           ) : (
             (() => {
