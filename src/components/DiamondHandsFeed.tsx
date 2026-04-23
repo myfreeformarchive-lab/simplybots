@@ -52,7 +52,7 @@ const buildBuyerUrl = (buyer: string) => {
 
 const getBadge = (usdValue: number | null) => {
   if (usdValue == null) return null;
-  if (usdValue >= 2000) return "👑";
+  if (usdValue >= 2500) return "👑";
   if (usdValue >= 1500) return "🐳";
   return null;
 };
