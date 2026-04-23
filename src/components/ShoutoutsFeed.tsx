@@ -602,11 +602,7 @@ export default function ShoutoutsFeed() {
       setIsLoading(false);
     };
 
-    const hasAnyCachedData = bigBuyItems.length > 0 || boostItems.length > 0;
-    const ageMs =
-      !hasAnyCachedData || lastFetchAt == null
-        ? Number.POSITIVE_INFINITY
-        : Date.now() - lastFetchAt;
+    const ageMs = lastFetchAt == null ? Number.POSITIVE_INFINITY : Date.now() - lastFetchAt;
     const delayMs = ageMs >= refreshMs ? 0 : Math.max(0, refreshMs - ageMs);
 
     if (delayMs === 0) {
@@ -624,18 +620,7 @@ export default function ShoutoutsFeed() {
       if (timeout != null) window.clearTimeout(timeout);
       if (interval != null) window.clearInterval(interval);
     };
-  }, [
-    boostLimit,
-    boostTableName,
-    isCacheHydrated,
-    lastFetchAt,
-    leaderboardViewName,
-    limit,
-    refreshMs,
-    tableName,
-    bigBuyItems.length,
-    boostItems.length,
-  ]);
+  }, [boostLimit, boostTableName, isCacheHydrated, lastFetchAt, leaderboardViewName, limit, refreshMs, tableName]);
 
   if (!isSupabaseConfigured || !tableName) {
     return (
