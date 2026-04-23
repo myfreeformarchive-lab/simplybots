@@ -399,8 +399,13 @@ export default function LiveLeaderboard() {
                 className="rounded-xl border border-white/5 bg-white/5 px-3 py-2"
               >
                 <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-sm text-gray-400 w-3">#{globalRank}</span>
+                  <div className="flex items-center min-w-0">
+                    <span
+                      className={`text-sm text-gray-400 w-3 ${showWarning ? "" : "mr-3"}`}
+                    >
+                      #{globalRank}
+                    </span>
+                    {showWarning ? <span className="w-5 shrink-0" /> : null}
                     {tokenUrl ? (
                       <a
                         href={tokenUrl}
