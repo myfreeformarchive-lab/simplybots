@@ -406,10 +406,10 @@ export default function LiveLeaderboard() {
                         href={tokenUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="font-bold text-white truncate hover:text-banana transition-colors inline-flex items-center gap-2 min-w-0"
+                        className="font-bold text-white hover:text-banana transition-colors inline-flex items-center gap-2 min-w-0"
                         title={row.contractAddress ?? undefined}
                       >
-                        <span className="truncate inline-flex items-center gap-1 min-w-0">
+                        <span className="inline-flex items-center gap-1 min-w-0">
                           {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
                           {showWarning ? (
                             <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
@@ -424,7 +424,7 @@ export default function LiveLeaderboard() {
                         <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
                       </a>
                     ) : (
-                      <span className="font-bold text-white truncate inline-flex items-center gap-1 min-w-0">
+                      <span className="font-bold text-white inline-flex items-center gap-1 min-w-0">
                         {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
                         {showWarning ? (
                           <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
