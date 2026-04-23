@@ -378,7 +378,10 @@ export default function LiveLeaderboard() {
                         className="font-bold text-white truncate hover:text-banana transition-colors inline-flex items-center gap-2 min-w-0"
                         title={row.contractAddress ?? undefined}
                       >
-                        <span className="truncate">{row.symbol ?? "—"}</span>
+                        <span className="truncate">
+                          {globalRank === 1 ? "🔥 " : ""}
+                          {row.symbol ?? "—"}
+                        </span>
                         {dexLabel && (
                           <span className="hidden sm:inline text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
                             {dexLabel}
@@ -388,6 +391,7 @@ export default function LiveLeaderboard() {
                       </a>
                     ) : (
                       <span className="font-bold text-white truncate">
+                        {globalRank === 1 ? "🔥 " : ""}
                         {row.symbol ?? "—"}
                       </span>
                     )}
