@@ -400,42 +400,38 @@ export default function LiveLeaderboard() {
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-sm text-gray-400 w-3 shrink-0 tabular-nums">
-                      #{globalRank}
-                    </span>
-                    <div className="min-w-0">
-                      {tokenUrl ? (
-                        <a
-                          href={tokenUrl}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="font-bold text-white hover:text-banana transition-colors inline-flex items-center gap-2 min-w-0"
-                          title={row.contractAddress ?? undefined}
-                        >
-                          <span className="inline-flex items-center gap-1 min-w-0">
-                            {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
-                            <span className="truncate">{row.symbol ?? "—"}</span>
-                          </span>
-                          {dexLabel && (
-                            <span className="hidden sm:inline text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
-                              {dexLabel}
-                            </span>
-                          )}
-                          <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
-                          {showWarning ? (
-                            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
-                          ) : null}
-                        </a>
-                      ) : (
-                        <span className="font-bold text-white inline-flex items-center gap-1 min-w-0">
+                    <span className="text-sm text-gray-400 w-3">#{globalRank}</span>
+                    {tokenUrl ? (
+                      <a
+                        href={tokenUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-bold text-white hover:text-banana transition-colors inline-flex items-center gap-2 min-w-0"
+                        title={row.contractAddress ?? undefined}
+                      >
+                        <span className="inline-flex items-center gap-1 min-w-0">
                           {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
                           <span className="truncate">{row.symbol ?? "—"}</span>
-                          {showWarning ? (
-                            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
-                          ) : null}
                         </span>
-                      )}
-                    </div>
+                        {dexLabel && (
+                          <span className="hidden sm:inline text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
+                            {dexLabel}
+                          </span>
+                        )}
+                        <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
+                        {showWarning ? (
+                          <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
+                        ) : null}
+                      </a>
+                    ) : (
+                      <span className="font-bold text-white inline-flex items-center gap-1 min-w-0">
+                        {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
+                        <span className="truncate">{row.symbol ?? "—"}</span>
+                        {showWarning ? (
+                          <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
+                        ) : null}
+                      </span>
+                    )}
                   </div>
                   <span className="text-sm font-bold text-banana tabular-nums">
                     {row.score == null ? "—" : formatScore(row.score)}
