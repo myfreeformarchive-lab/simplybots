@@ -405,7 +405,7 @@ export default function LiveLeaderboard() {
                     >
                       #{globalRank}
                     </span>
-                    {showWarning ? <span className="w-5 shrink-0" /> : null}
+                    {showWarning ? <span className="w-4 shrink-0" /> : null}
                     {tokenUrl ? (
                       <a
                         href={tokenUrl}
