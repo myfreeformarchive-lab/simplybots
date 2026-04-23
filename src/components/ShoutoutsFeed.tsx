@@ -532,8 +532,7 @@ export default function ShoutoutsFeed() {
       const { data: boostData, error: boostError } = await supabase
         .from(boostTableName)
         .select("id,boost_id,contract_address,token_symbol,template_key,scheduled_at,sent_at,created_at")
-        .not("sent_at", "is", null)
-        .order("sent_at", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(boostLimit);
 
       if (cancelled) return;
