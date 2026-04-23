@@ -400,7 +400,7 @@ export default function LiveLeaderboard() {
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-3 min-w-0">
-                    <span className="text-sm text-gray-400 tabular-nums shrink-0 w-10 text-right">
+                    <span className="text-sm text-gray-400 w-3 shrink-0 tabular-nums">
                       #{globalRank}
                     </span>
                     <div className="min-w-0">
@@ -423,7 +423,7 @@ export default function LiveLeaderboard() {
                           )}
                           <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
                           {showWarning ? (
-                            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
                           ) : null}
                         </a>
                       ) : (
@@ -431,7 +431,7 @@ export default function LiveLeaderboard() {
                           {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
                           <span className="truncate">{row.symbol ?? "—"}</span>
                           {showWarning ? (
-                            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                            <AlertTriangle className="w-5 h-5 text-red-400 shrink-0" />
                           ) : null}
                         </span>
                       )}
