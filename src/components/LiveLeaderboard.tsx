@@ -16,7 +16,28 @@ type LeaderboardRow = {
 const getNumber = (value: unknown) => {
   if (typeof value === "number") return value;
   if (typeof value === "string") {
-    const parsed = Number(value);
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const normalized = trimmed.replace(/[$,]/g, "").replace(/\s+/g, "");
+    const match = normalized.match(/^(-?\d+(?:\.\d+)?)([kKmMbBtT])?$/);
+    if (!match) {
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    const num = Number(match[1]);
+    if (!Number.isFinite(num)) return null;
+    const suffix = match[2]?.toLowerCase() ?? null;
+    const multiplier =
+      suffix === "k"
+        ? 1e3
+        : suffix === "m"
+          ? 1e6
+          : suffix === "b"
+            ? 1e9
+            : suffix === "t"
+              ? 1e12
+              : 1;
+    const parsed = num * multiplier;
     return Number.isFinite(parsed) ? parsed : null;
   }
   return null;
