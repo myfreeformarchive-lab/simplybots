@@ -411,9 +411,6 @@ export default function LiveLeaderboard() {
                       >
                         <span className="inline-flex items-center gap-1 min-w-0">
                           {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
-                          {showWarning ? (
-                            <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-                          ) : null}
                           <span className="truncate">{row.symbol ?? "—"}</span>
                         </span>
                         {dexLabel && (
@@ -422,14 +419,17 @@ export default function LiveLeaderboard() {
                           </span>
                         )}
                         <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
+                        {showWarning ? (
+                          <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
+                        ) : null}
                       </a>
                     ) : (
                       <span className="font-bold text-white inline-flex items-center gap-1 min-w-0">
                         {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
+                        <span className="truncate">{row.symbol ?? "—"}</span>
                         {showWarning ? (
                           <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
                         ) : null}
-                        <span className="truncate">{row.symbol ?? "—"}</span>
                       </span>
                     )}
                   </div>
