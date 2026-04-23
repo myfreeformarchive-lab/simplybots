@@ -142,8 +142,12 @@ export default function LiveLeaderboard() {
 
   const refreshMs = useMemo(() => {
     const raw = import.meta.env.VITE_SUPABASE_LEADERBOARD_POLL_MS;
-    const parsed = raw ? Number(raw) : 600_000;
-    return Number.isFinite(parsed) ? parsed : 600_000;
+    const fallback = 600_000;
+    const parsed = raw ? Number(raw) : NaN;
+    if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+    if (parsed >= 60_000) return parsed;
+    if (parsed <= 60) return parsed * 60_000;
+    return parsed * 1000;
   }, []);
 
   const dexscreenerChain = useMemo(
