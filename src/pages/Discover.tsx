@@ -197,6 +197,15 @@ export default function Discover() {
           boost?.header ??
           null;
 
+        const rawAmount =
+          typeof boost?.amount === "number" && Number.isFinite(boost.amount) ? boost.amount : null;
+        const rawTotal =
+          typeof boost?.totalAmount === "number" && Number.isFinite(boost.totalAmount)
+            ? boost.totalAmount
+            : null;
+        const boostsActive = rawAmount ?? rawTotal;
+        const boostsTotal = rawAmount == null ? null : rawTotal;
+
         return {
           tokenAddress: addr,
           dexUrl: best?.url ?? boost?.url ?? null,
@@ -208,12 +217,8 @@ export default function Discover() {
                 ? best.fdv
                 : null,
           imageUrl: toHttpImageUrl(imageUrlRaw),
-          boostsActive:
-            typeof boost?.amount === "number" && Number.isFinite(boost.amount) ? boost.amount : null,
-          boostsTotal:
-            typeof boost?.totalAmount === "number" && Number.isFinite(boost.totalAmount)
-              ? boost.totalAmount
-              : null,
+          boostsActive,
+          boostsTotal,
         };
       });
 
