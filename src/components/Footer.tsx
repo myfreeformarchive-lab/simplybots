@@ -2,7 +2,7 @@ export default function Footer() {
   return (
     <footer className="bg-black py-16 border-t border-white/5 relative z-10">
       <div className="max-w-4xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-12">
           
           <div className="col-span-1">
             <div className="flex items-center space-x-2 mb-4">
@@ -20,6 +20,17 @@ export default function Footer() {
               <li><a href="https://t.me/SolBananaBot" className="hover:text-banana transition-colors">@SolBananaBot</a></li>
               <li><a href="https://t.me/SolSnackBot" className="hover:text-solana-green transition-colors">@SolSnackBot</a></li>
               <li><a href="https://t.me/Simplypumping" className="hover:text-solana-purple transition-colors">@Simplypumping</a></li>
+            </ul>
+          </div>
+
+          <div className="md:ml-auto">
+            <h4 className="font-bold mb-4 text-white">Discover</h4>
+            <ul className="space-y-2 text-sm text-gray-500">
+              <li>
+                <a href="/discover" className="hover:text-white transition-colors">
+                  Boosted Tokens
+                </a>
+              </li>
             </ul>
           </div>
 
