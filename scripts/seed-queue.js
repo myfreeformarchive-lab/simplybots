@@ -56,14 +56,13 @@ const main = async () => {
   const maxTokens = Number.isFinite(maxTokensRaw) && maxTokensRaw > 0 ? maxTokensRaw : 200;
   const perCommand = Number.isFinite(perCommandRaw) && perCommandRaw > 0 ? perCommandRaw : 20;
 
-  const modes =
-    seedMode === "latest" || seedMode === "top"
-      ? [seedMode]
-      : ["latest", "top"];
+  const modes = seedMode === "latest" || seedMode === "top" ? [seedMode] : ["latest", "top"];
 
   const supabase = createClient(supabaseUrl, supabaseKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+
+  const allAddresses = [];
 
   for (const mode of modes) {
     const endpoint =
@@ -77,25 +76,25 @@ const main = async () => {
       .map((t) => t.tokenAddress);
 
     const addresses = uniq(sol).slice(0, maxTokens);
-    const lines = buildSeedLines(addresses, perCommand);
-    const content = `${lines.join("\n")}\n`;
-
-    const { error } = await supabase
-      .from("global_seed_queue")
-      .insert({ text: content, mode });
-
-    if (error) {
-      throw new Error(`Supabase insert failed (${mode}): ${error.message}`);
-    }
-
-    process.stdout.write(
-      `Inserted global_seed_queue row for mode=${mode} addresses=${addresses.length} lines=${lines.length}\n`,
-    );
+    allAddresses.push(...addresses);
   }
+
+  const mergedAddresses = uniq(allAddresses);
+  const lines = buildSeedLines(mergedAddresses, perCommand);
+  const content = `${lines.join("\n")}\n`;
+
+  const { error } = await supabase.from("global_seed_queue").insert({ text: content });
+
+  if (error) {
+    throw new Error(`Supabase insert failed: ${error.message}`);
+  }
+
+  process.stdout.write(
+    `Inserted global_seed_queue row addresses=${mergedAddresses.length} lines=${lines.length} modes=${modes.join(",")}\n`,
+  );
 };
 
 main().catch((err) => {
   process.stderr.write(`${err instanceof Error ? err.message : String(err)}\n`);
   process.exitCode = 1;
 });
-
