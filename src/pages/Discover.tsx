@@ -131,7 +131,12 @@ export default function Discover() {
 
   const downloadSeedCommand = () => {
     const addresses = items.map((t) => t.tokenAddress).filter(Boolean);
-    const text = `/seedglobal (${addresses.join(",")})\n`;
+    const lines: string[] = [];
+    for (let i = 0; i < addresses.length; i += 20) {
+      const batch = addresses.slice(i, i + 20);
+      lines.push(`/seedglobal ${batch.join(",")}`);
+    }
+    const text = `${lines.join("\n")}\n`;
     const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
     const url = URL.createObjectURL(blob);
 
