@@ -321,18 +321,19 @@ export default function DiamondHandsFeed() {
                         </span>
                         {globalRank === 1 && <span className="text-sm shrink-0">💎</span>}
                         {badge && <span className="text-sm shrink-0">{badge}</span>}
+                        {item.buyer && buildBuyerUrl(item.buyer) ? (
+                          <a
+                            href={buildBuyerUrl(item.buyer) ?? undefined}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="shrink-0 text-sm text-gray-400 hover:text-white transition-colors"
+                            title={item.buyer}
+                            aria-label="View buyer wallet"
+                          >
+                            👛
+                          </a>
+                        ) : null}
                       </div>
-                      {item.buyer ? (
-                        <a
-                          href={buildBuyerUrl(item.buyer) ?? undefined}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="block min-w-0 text-xs text-gray-400 truncate hover:text-white transition-colors"
-                          title={item.buyer}
-                        >
-                          · {shorten(item.buyer)}
-                        </a>
-                      ) : null}
                     </div>
                     <span className="text-sm font-bold text-banana tabular-nums justify-self-end">
                       {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
