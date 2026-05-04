@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-import { ExternalLink, Flame, RefreshCw } from "lucide-react";
+import { Download, ExternalLink, Flame, RefreshCw } from "lucide-react";
 
 type BoostMode = "latest" | "top";
 
@@ -128,6 +128,21 @@ export default function Discover() {
     const interval = window.setInterval(() => setNowMs(Date.now()), 30_000);
     return () => window.clearInterval(interval);
   }, []);
+
+  const downloadSeedCommand = () => {
+    const addresses = items.map((t) => t.tokenAddress).filter(Boolean);
+    const text = `/seedglobal (${addresses.join(",")})\n`;
+    const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `seedglobal-${mode}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+  };
 
   const load = useCallback(async () => {
     setIsLoading(true);
@@ -288,6 +303,15 @@ export default function Discover() {
                 >
                   <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
                   <span className="text-xs font-bold">Refresh</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={downloadSeedCommand}
+                  disabled={items.length === 0}
+                  className="h-8 px-3 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
+                >
+                  <Download className="w-4 h-4" />
+                  <span className="text-xs font-bold">Download</span>
                 </button>
               </div>
             </div>
