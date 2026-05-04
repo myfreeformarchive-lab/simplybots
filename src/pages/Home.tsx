@@ -13,7 +13,7 @@ export default function Home() {
       <HeroSection />
 
       <section className="relative -mt-24 pb-24">
-        <div className="container mx-auto px-4">
+        <div className="w-full px-3 sm:px-6 lg:px-8">
           <div className="mb-10">
             <h2 className="text-3xl md:text-4xl font-bold">
               Live data
@@ -23,16 +23,22 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <LiveLeaderboard />
-            <DiamondHandsFeed />
-            <ShoutoutsFeed />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
+            <div className="lg:col-span-6">
+              <LiveLeaderboard />
+            </div>
+            <div className="lg:col-span-3">
+              <DiamondHandsFeed />
+            </div>
+            <div className="lg:col-span-3">
+              <ShoutoutsFeed />
+            </div>
           </div>
         </div>
       </section>
 
       <section className="pb-24">
-        <div className="container mx-auto px-4">
+        <div className="w-full px-3 sm:px-6 lg:px-8">
           <div className="glass-card p-6 md:p-10 border-white/10">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
               <div>
