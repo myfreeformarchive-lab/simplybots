@@ -310,35 +310,33 @@ export default function DiamondHandsFeed() {
                   key={`${item.txSig ?? "na"}-${globalRank}`}
                   className="rounded-xl border border-white/5 bg-white/5 px-3 py-2 min-h-[56px] flex flex-col justify-between"
                 >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-sm text-gray-400 w-3">#{globalRank}</span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 min-w-0">
-                          {globalRank === 1 && <span className="text-sm">💎</span>}
-                          {badge && <span className="text-sm">{badge}</span>}
-                          <span className="font-bold text-white truncate">
-                            {item.symbol ?? "—"}
-                          </span>
-                        {item.buyer ? (
-                          <a
-                            href={buildBuyerUrl(item.buyer) ?? undefined}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-xs text-gray-400 truncate min-w-0 hover:text-white transition-colors"
-                            title={item.buyer}
-                          >
-                            · {shorten(item.buyer)}
-                          </a>
-                        ) : null}
-                        </div>
-                      </div>
+                  <div className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-x-3">
+                    <span className="text-sm text-gray-400 tabular-nums text-right">
+                      #{globalRank}
+                    </span>
+                    <div className="min-w-0 flex items-center gap-2">
+                      {globalRank === 1 && <span className="text-sm shrink-0">💎</span>}
+                      {badge && <span className="text-sm shrink-0">{badge}</span>}
+                      <span className="min-w-0 font-bold text-white truncate">
+                        {item.symbol ?? "—"}
+                      </span>
+                      {item.buyer ? (
+                        <a
+                          href={buildBuyerUrl(item.buyer) ?? undefined}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="min-w-0 text-xs text-gray-400 truncate hover:text-white transition-colors"
+                          title={item.buyer}
+                        >
+                          · {shorten(item.buyer)}
+                        </a>
+                      ) : null}
                     </div>
-                    <span className="text-sm font-bold text-banana tabular-nums">
+                    <span className="text-sm font-bold text-banana tabular-nums justify-self-end">
                       {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
                     </span>
                   </div>
-                  <div className="mt-1 flex items-center justify-between text-xs text-gray-400">
+                  <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-400">
                     <span className="tabular-nums">
                       SOL {item.solSpent == null ? "—" : formatSol(item.solSpent)}
                     </span>
@@ -347,16 +345,16 @@ export default function DiamondHandsFeed() {
                         href={txUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 hover:text-white transition-colors"
+                        className="inline-flex items-center gap-1 hover:text-white transition-colors sm:justify-self-end"
                         title={item.txSig ?? undefined}
                       >
                         <span className="tabular-nums">
                           {item.txSig ? shorten(item.txSig, 6, 6) : "Tx"}
                         </span>
-                        <ExternalLink className="w-3 h-3 text-white/50" />
+                        <ExternalLink className="w-3 h-3 text-white/50 shrink-0" />
                       </a>
                     ) : (
-                      <span>—</span>
+                      <span className="sm:justify-self-end">—</span>
                     )}
                   </div>
                 </div>
