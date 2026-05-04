@@ -310,8 +310,8 @@ export default function DiamondHandsFeed() {
                   key={`${item.txSig ?? "na"}-${globalRank}`}
                   className="rounded-xl border border-white/5 bg-white/5 px-3 py-2 min-h-[56px] flex flex-col justify-between"
                 >
-                  <div className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-x-3">
-                    <span className="text-sm text-gray-400 tabular-nums text-right">
+                  <div className="grid grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-x-3">
+                    <span className="text-sm text-gray-400 tabular-nums text-left">
                       #{globalRank}
                     </span>
                     <div className="min-w-0 flex items-center gap-2">

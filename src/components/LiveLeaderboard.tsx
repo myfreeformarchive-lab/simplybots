@@ -398,8 +398,8 @@ export default function LiveLeaderboard() {
                 key={`${row.contractAddress ?? "na"}-${row.symbol ?? globalRank}`}
                 className="rounded-xl border border-white/5 bg-white/5 px-3 py-2"
               >
-                <div className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-x-3">
-                  <span className="text-sm text-gray-400 tabular-nums text-right">
+                <div className="grid grid-cols-[3rem_minmax(0,1fr)_auto] items-center gap-x-3">
+                  <span className="text-sm text-gray-400 tabular-nums text-left">
                     #{globalRank}
                   </span>
                   {tokenUrl ? (
