@@ -121,24 +121,66 @@ const formatCompact = (value) => {
   }).format(value);
 };
 
+const takeRandomUnique = (items, count) => {
+  const src = Array.isArray(items) ? items.slice() : [];
+  const picked = [];
+  const n = Math.min(Math.max(0, count | 0), src.length);
+  for (let i = 0; i < n; i++) {
+    const idx = crypto.randomInt(0, src.length);
+    picked.push(src[idx]);
+    src.splice(idx, 1);
+  }
+  return picked;
+};
+
+const buildHashtagLine = () => {
+  const pool = ["#Solana", "#Moonshot", "#LFG", "#Gems", "#ToTheMoon"];
+  return takeRandomUnique(pool, 2).join(" ");
+};
+
+const clampTweetLength = (text) => {
+  const max = 280;
+  const s = String(text ?? "");
+  if (s.length <= max) return s;
+  return `${s.slice(0, max - 3).trimEnd()}...`;
+};
+
 const buildLeaderboardTweet = ({ symbol, score, mcap }) => {
   const rawSym = typeof symbol === "string" ? symbol : "";
   const cleanSym = rawSym.trim().replace(/^\$+/, "").toUpperCase();
   const sym = cleanSym ? `$${cleanSym}` : "$TOKEN";
+  const hashtags = buildHashtagLine();
+  const variant = crypto.randomInt(0, 2);
 
-  return [
-    `${sym} is about to go mainstream 🚨`,
-    "",
-    `🔥 ${formatScore(score)} score`,
-    "👨‍🍳 The dev is cooking",
-    `📈 MCAP: ${formatCompact(mcap)}`,
-    "",
-    "➡️ Last time you'll see it this low",
-    "",
-    "Buy now or buy the top when your favorite influencer tweets it. Your choice. 🤷‍♂️",
-    "",
-    "#Gems #ToTheMoon",
-  ].join("\n");
+  const lines =
+    variant === 0
+      ? [
+          `${sym} is about to go mainstream 🚀`,
+          "",
+          `🔥 ${formatScore(score)} score`,
+          "👨‍🍳 The dev is cooking",
+          `📈 MCAP: ${formatCompact(mcap)}`,
+          "",
+          "➡️ Last time you'll see it this low",
+          "",
+          "Buy now or buy the top when your favorite influencer tweets it. Your choice. 🤷‍♂️",
+          "",
+          hashtags,
+        ]
+      : [
+          `${sym} is programmed for billions 💎`,
+          "",
+          `✅ ${formatScore(score)} Score (🗿 Elite Tier)`,
+          `✅ MCAP: $${formatCompact(mcap)} (🎁 Literal gift)`,
+          "✅ Distribution is looking clean 📊",
+          "",
+          "The chart is primed and the community is relentless",
+          "If you're looking for the next runner on SOL, this is the one 🏃‍♂️💨",
+          "",
+          hashtags,
+        ];
+
+  return clampTweetLength(lines.join("\n"));
 };
 
 const postToX = async ({ text }) => {
