@@ -139,6 +139,22 @@ const buildTokenUrl = (
   return `https://dexscreener.com/${encodeURIComponent(safeChain)}/${encodeURIComponent(safeAddress)}`;
 };
 
+const shouldPostToX = (row: LeaderboardRow, rank: number) => {
+  if (row.contractAddress == null) return false;
+  if (row.score == null || !Number.isFinite(row.score) || row.score <= 100) return false;
+  if (rank < 1 || rank > 5) return false;
+  if (
+    row.mcap != null &&
+    row.buyVolumeUsd != null &&
+    Number.isFinite(row.mcap) &&
+    Number.isFinite(row.buyVolumeUsd) &&
+    row.buyVolumeUsd > row.mcap
+  ) {
+    return false;
+  }
+  return true;
+};
+
 export default function LiveLeaderboard() {
   const [rows, setRows] = useState<LeaderboardRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -296,6 +312,94 @@ export default function LiveLeaderboard() {
       if (interval != null) window.clearInterval(interval);
     };
   }, [isCacheHydrated, lastFetchAt, limit, refreshMs, viewName]);
+
+  useEffect(() => {
+    if (!import.meta.env.PROD) return;
+    if (rows.length === 0) return;
+
+    const key = "simplybots:xposts:leaderboard:v1";
+    let already = new Set<string>();
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed = JSON.parse(raw) as unknown;
+        if (Array.isArray(parsed)) {
+          already = new Set(
+            parsed.filter((v) => typeof v === "string").map((v) => v.trim()).filter(Boolean),
+          );
+        }
+      }
+    } catch {
+      already = new Set();
+    }
+
+    const top5 = rows.slice(0, 5);
+    const candidates = top5
+      .map((row, idx) => ({ row, rank: idx + 1 }))
+      .filter(({ row, rank }) => {
+        const addr = row.contractAddress?.trim() ?? "";
+        if (!addr) return false;
+        if (already.has(addr)) return false;
+        return shouldPostToX(row, rank);
+      });
+
+    if (candidates.length === 0) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      for (const { row, rank } of candidates) {
+        const addr = row.contractAddress?.trim() ?? "";
+        if (!addr || already.has(addr)) continue;
+        try {
+          const resp = await fetch("/api/x/liveleaderboard", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({
+              contractAddress: addr,
+              symbol: row.symbol,
+              score: row.score,
+              mcap: row.mcap,
+              buyVolumeUsd: row.buyVolumeUsd,
+              rank,
+            }),
+          });
+
+          const payload = (await resp.json().catch(() => null)) as unknown;
+          if (!resp.ok) continue;
+          if (cancelled) return;
+
+          const status =
+            payload && typeof payload === "object" && "status" in payload
+              ? (payload as { status?: unknown }).status
+              : null;
+          const reason =
+            payload && typeof payload === "object" && "reason" in payload
+              ? (payload as { reason?: unknown }).reason
+              : null;
+
+          const shouldMark =
+            status === "posted" || (status === "skipped" && reason === "duplicate");
+
+          if (shouldMark) {
+            already.add(addr);
+            try {
+              localStorage.setItem(key, JSON.stringify(Array.from(already)));
+            } catch {
+              void payload;
+            }
+          }
+        } catch {
+          continue;
+        }
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [rows]);
 
   if (!isSupabaseConfigured) {
     return (
