@@ -13,6 +13,8 @@ type LeaderboardRow = {
   score: number | null;
 };
 
+const DISPLAY_LOCALE = "en-US";
+
 const getNumber = (value: unknown) => {
   if (typeof value === "number") return value;
   if (typeof value === "string") {
@@ -95,15 +97,16 @@ const normalizeRow = (raw: Record<string, unknown>): LeaderboardRow => {
 
 const formatCompact = (value: number) => {
   if (!Number.isFinite(value)) return "—";
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(DISPLAY_LOCALE, {
     notation: "compact",
+    compactDisplay: "short",
     maximumFractionDigits: 2,
   }).format(value);
 };
 
 const formatScore = (value: number) => {
   if (!Number.isFinite(value)) return "—";
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(DISPLAY_LOCALE, {
     maximumFractionDigits: 2,
   }).format(value);
 };
