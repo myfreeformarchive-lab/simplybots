@@ -36,6 +36,8 @@ type BoostShoutout = {
   stats: BoostStats | null;
 };
 
+const DISPLAY_LOCALE = "en-US";
+
 const getString = (value: unknown) => (typeof value === "string" ? value : null);
 
 const getNumber = (value: unknown) => {
@@ -56,26 +58,28 @@ const formatUsd = (value: number) =>
 
 const formatCompact = (value: number) => {
   if (!Number.isFinite(value)) return "—";
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(DISPLAY_LOCALE, {
     notation: "compact",
+    compactDisplay: "short",
     maximumFractionDigits: 2,
   }).format(value);
 };
 
 const formatSol = (value: number) =>
-  new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
+  new Intl.NumberFormat(DISPLAY_LOCALE, { maximumFractionDigits: 2 }).format(value);
 
 const formatUsdCompact = (value: number) => {
   if (!Number.isFinite(value)) return "—";
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(DISPLAY_LOCALE, {
     notation: "compact",
+    compactDisplay: "short",
     maximumFractionDigits: 2,
   }).format(value);
 };
 
 const formatScore = (value: number) => {
   if (!Number.isFinite(value)) return "—";
-  return new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
+  return new Intl.NumberFormat(DISPLAY_LOCALE, { maximumFractionDigits: 2 }).format(value);
 };
 
 const buildTxUrl = (txSig: string) =>
@@ -308,7 +312,7 @@ const renderBoostTemplate = (
 ) => {
   const sym = symbol.trim().toUpperCase() || "TOKEN";
   const buysTxt =
-    stats?.buyCount == null ? "—" : new Intl.NumberFormat(undefined).format(stats.buyCount);
+    stats?.buyCount == null ? "—" : new Intl.NumberFormat(DISPLAY_LOCALE).format(stats.buyCount);
   const volTxt = stats?.buyVolumeUsd == null ? "—" : `$${formatUsdCompact(stats.buyVolumeUsd)}`;
   const mcapTxt = stats?.mcap == null ? "—" : `$${formatUsdCompact(stats.mcap)}`;
   const scoreTxt = stats?.score == null ? null : formatScore(stats.score);
@@ -760,7 +764,7 @@ export default function ShoutoutsFeed() {
                     <div className="font-bold text-white tabular-nums">
                       {activeCard.item.stats?.buyCount == null
                         ? "—"
-                        : new Intl.NumberFormat(undefined).format(activeCard.item.stats.buyCount)}
+                        : new Intl.NumberFormat(DISPLAY_LOCALE).format(activeCard.item.stats.buyCount)}
                     </div>
                   </div>
                   <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
