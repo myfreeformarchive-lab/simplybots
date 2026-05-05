@@ -313,10 +313,11 @@ export default function Discover() {
                   type="button"
                   onClick={downloadSeedCommand}
                   disabled={items.length === 0}
-                  className="h-8 px-3 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
+                  aria-label="Download"
+                  className="h-8 px-2 sm:px-3 inline-flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
                 >
                   <Download className="w-4 h-4" />
-                  <span className="text-xs font-bold">Download</span>
+                  <span className="sr-only sm:not-sr-only text-xs font-bold">Download</span>
                 </button>
               </div>
             </div>
