@@ -494,39 +494,122 @@ const serveStatic = async (req, res) => {
   }
 };
 
-const server = http.createServer(async (req, res) => {
-  try {
-    const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
-
-    if (url.pathname === "/healthz") {
-      sendJson(res, 200, { ok: true });
-      return;
-    }
-
-    if (url.pathname === "/api/x/liveleaderboard") {
-      if (req.method !== "POST") {
-        sendJson(res, 405, { ok: false, error: "Method not allowed" });
-        return;
-      }
-      await handleLeaderboardPost(req, res);
-      return;
-    }
-
-    if (url.pathname === "/api/x/liveleaderboard/cron") {
-      if (req.method !== "POST") {
-        sendJson(res, 405, { ok: false, error: "Method not allowed" });
-        return;
-      }
-      await handleLeaderboardCron(req, res, url);
-      return;
-    }
-
-    await serveStatic(req, res);
-  } catch (err) {
-    sendJson(res, 500, { ok: false, error: "Internal server error" });
+const runLeaderboardCronOnce = async () => {
+  const hasXCreds =
+    Boolean(X_ACCESS_TOKEN) &&
+    Boolean(X_ACCESS_TOKEN_SECRET) &&
+    Boolean(X_CONSUMER_KEY) &&
+    Boolean(X_CONSUMER_SECRET);
+  if (!hasXCreds) {
+    return { ok: false, error: "X credentials not configured" };
   }
-});
 
-server.listen(PORT, () => {
-  process.stdout.write(`server listening on :${PORT}\n`);
-});
+  const sb = getSupabase();
+  if (!sb) {
+    return { ok: false, error: "Supabase credentials not configured" };
+  }
+
+  const { data, error } = await sb
+    .from(SUPABASE_LEADERBOARD_VIEW)
+    .select("contract_address,symbol,mcap,buy_volume_usd,score")
+    .order("score", { ascending: false })
+    .limit(5);
+
+  if (error) {
+    return { ok: false, error: "Failed to load leaderboard" };
+  }
+
+  const posted = await readPostedSet();
+  const results = [];
+  let wrote = false;
+
+  for (let i = 0; i < (data ?? []).length; i++) {
+    const row = data[i] ?? {};
+    const contractAddress =
+      typeof row.contract_address === "string" ? row.contract_address : "";
+    const symbol = typeof row.symbol === "string" ? row.symbol : null;
+    const score = typeof row.score === "number" ? row.score : Number(row.score);
+    const mcap = typeof row.mcap === "number" ? row.mcap : Number(row.mcap);
+    const buyVolumeUsd =
+      typeof row.buy_volume_usd === "number"
+        ? row.buy_volume_usd
+        : Number(row.buy_volume_usd);
+    const rank = i + 1;
+
+    try {
+      const outcome = await processLeaderboardCandidate({
+        contractAddress,
+        symbol,
+        score,
+        mcap,
+        buyVolumeUsd,
+        rank,
+        posted,
+      });
+      results.push({ contractAddress: contractAddress.trim(), ...outcome });
+      if (outcome.ok && outcome.status === "posted") wrote = true;
+    } catch {
+      results.push({
+        contractAddress: contractAddress.trim(),
+        ok: false,
+        status: "error",
+        error: "Unhandled error",
+      });
+    }
+  }
+
+  if (wrote) await writePostedSet(posted);
+  return { ok: true, checked: results.length, results };
+};
+
+const startWebServer = () => {
+  const server = http.createServer(async (req, res) => {
+    try {
+      const url = new URL(req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
+
+      if (url.pathname === "/healthz") {
+        sendJson(res, 200, { ok: true });
+        return;
+      }
+
+      if (url.pathname === "/api/x/liveleaderboard") {
+        if (req.method !== "POST") {
+          sendJson(res, 405, { ok: false, error: "Method not allowed" });
+          return;
+        }
+        await handleLeaderboardPost(req, res);
+        return;
+      }
+
+      if (url.pathname === "/api/x/liveleaderboard/cron") {
+        if (req.method !== "POST") {
+          sendJson(res, 405, { ok: false, error: "Method not allowed" });
+          return;
+        }
+        await handleLeaderboardCron(req, res, url);
+        return;
+      }
+
+      await serveStatic(req, res);
+    } catch (err) {
+      sendJson(res, 500, { ok: false, error: "Internal server error" });
+    }
+  });
+
+  server.listen(PORT, () => {
+    process.stdout.write(`server listening on :${PORT}\n`);
+  });
+};
+
+if (process.env.RUN_LEADERBOARD_CRON === "1") {
+  runLeaderboardCronOnce()
+    .then((result) => {
+      process.stdout.write(`${JSON.stringify(result)}\n`);
+      process.exit(result.ok ? 0 : 1);
+    })
+    .catch(() => {
+      process.exit(1);
+    });
+} else {
+  startWebServer();
+}
