@@ -139,6 +139,13 @@ const buildTokenUrl = (
   return `https://dexscreener.com/${encodeURIComponent(safeChain)}/${encodeURIComponent(safeAddress)}`;
 };
 
+const isCompleteLeaderboardRow = (row: LeaderboardRow) => {
+  if (row.mcap == null || !Number.isFinite(row.mcap)) return false;
+  if (row.buyVolumeUsd == null || !Number.isFinite(row.buyVolumeUsd)) return false;
+  if (row.buyCount == null || !Number.isFinite(row.buyCount)) return false;
+  return true;
+};
+
 const shouldPostToX = (row: LeaderboardRow, rank: number) => {
   if (row.contractAddress == null) return false;
   if (row.score == null || !Number.isFinite(row.score) || row.score <= 100) return false;
@@ -180,6 +187,11 @@ export default function LiveLeaderboard() {
     return Number.isFinite(parsed) ? parsed : 10;
   }, []);
 
+  const fetchLimit = useMemo(() => {
+    const expanded = limit * 4;
+    return Math.min(250, Math.max(limit, expanded));
+  }, [limit]);
+
   const refreshMs = useMemo(() => {
     const raw = import.meta.env.VITE_SUPABASE_LEADERBOARD_POLL_MS;
     const fallback = 600_000;
@@ -203,7 +215,7 @@ export default function LiveLeaderboard() {
       if (!parsed || typeof parsed !== "object") return;
       const record = parsed as { rows?: unknown; fetchedAt?: unknown };
       if (Array.isArray(record.rows)) {
-        setRows(record.rows as LeaderboardRow[]);
+        setRows((record.rows as LeaderboardRow[]).filter(isCompleteLeaderboardRow));
       }
       if (typeof record.fetchedAt === "number" && Number.isFinite(record.fetchedAt)) {
         setLastFetchAt(record.fetchedAt);
@@ -264,7 +276,7 @@ export default function LiveLeaderboard() {
             "contract_address,dex,symbol,mcap,buy_volume_usd,buy_count,updated_at,score",
           )
           .order("score", { ascending: false })
-          .limit(limit);
+          .limit(fetchLimit);
 
       if (cancelled) return;
 
@@ -277,6 +289,7 @@ export default function LiveLeaderboard() {
       const normalized = (data ?? [])
         .filter((r): r is Record<string, unknown> => Boolean(r && typeof r === "object"))
         .map((r) => normalizeRow(r))
+        .filter(isCompleteLeaderboardRow)
         .slice(0, limit);
 
       setRows(normalized);
@@ -311,7 +324,7 @@ export default function LiveLeaderboard() {
       if (timeout != null) window.clearTimeout(timeout);
       if (interval != null) window.clearInterval(interval);
     };
-  }, [isCacheHydrated, lastFetchAt, limit, refreshMs, viewName]);
+  }, [fetchLimit, isCacheHydrated, lastFetchAt, limit, refreshMs, viewName]);
 
   useEffect(() => {
     if (!import.meta.env.PROD) return;
