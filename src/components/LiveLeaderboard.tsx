@@ -270,27 +270,43 @@ export default function LiveLeaderboard() {
     const fetchRows = async () => {
       setIsLoading(true);
       setError(null);
-      const { data, error } = await supabase
+      const selectFields =
+        "contract_address,dex,symbol,mcap,buy_volume_usd,buy_count,updated_at,score";
+
+      const targetCount = limit;
+      const pageSize = 100;
+      const maxFetch = Math.min(1000, Math.max(fetchLimit, limit * 20));
+
+      let offset = 0;
+      let collected: LeaderboardRow[] = [];
+
+      while (collected.length < targetCount && offset < maxFetch) {
+        const { data, error } = await supabase
           .from(viewName)
-          .select(
-            "contract_address,dex,symbol,mcap,buy_volume_usd,buy_count,updated_at,score",
-          )
+          .select(selectFields)
           .order("score", { ascending: false })
-          .limit(fetchLimit);
+          .range(offset, offset + pageSize - 1);
 
-      if (cancelled) return;
+        if (cancelled) return;
 
-      if (error) {
-        setError(error.message);
-        setIsLoading(false);
-        return;
+        if (error) {
+          setError(error.message);
+          setIsLoading(false);
+          return;
+        }
+
+        const batch = (data ?? [])
+          .filter((r): r is Record<string, unknown> => Boolean(r && typeof r === "object"))
+          .map((r) => normalizeRow(r))
+          .filter(isCompleteLeaderboardRow);
+
+        collected = collected.concat(batch);
+
+        if (!data || data.length < pageSize) break;
+        offset += pageSize;
       }
 
-      const normalized = (data ?? [])
-        .filter((r): r is Record<string, unknown> => Boolean(r && typeof r === "object"))
-        .map((r) => normalizeRow(r))
-        .filter(isCompleteLeaderboardRow)
-        .slice(0, limit);
+      const normalized = collected.slice(0, limit);
 
       setRows(normalized);
       const fetchedAt = Date.now();
