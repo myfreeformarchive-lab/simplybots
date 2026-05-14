@@ -219,6 +219,7 @@ const processLeaderboardCandidate = async ({
   score,
   mcap,
   buyVolumeUsd,
+  holderCount,
   rank,
   posted,
 }) => {
@@ -228,16 +229,17 @@ const processLeaderboardCandidate = async ({
 
   const scoreOk = Number.isFinite(score) && score > 100;
   const rankOk = Number.isFinite(rank) && rank >= 1 && rank <= 5;
+  const holderOk = Number.isFinite(holderCount);
   const warning =
     Number.isFinite(mcap) && Number.isFinite(buyVolumeUsd) && buyVolumeUsd > mcap;
   const warningOk = !warning;
 
-  if (!scoreOk || !rankOk || !warningOk) {
+  if (!scoreOk || !rankOk || !holderOk || !warningOk) {
     return {
       ok: true,
       status: "skipped",
       reason: "conditions_not_met",
-      details: { scoreOk, rankOk, warningOk },
+      details: { scoreOk, rankOk, holderOk, warningOk },
     };
   }
 
@@ -322,6 +324,12 @@ const handleLeaderboardPost = async (req, res) => {
     typeof body.buyVolumeUsd === "number"
       ? body.buyVolumeUsd
       : Number(body.buyVolumeUsd);
+  const holderCount =
+    typeof body.holderCount === "number"
+      ? body.holderCount
+      : typeof body.holder_count === "number"
+        ? body.holder_count
+        : Number(body.holderCount ?? body.holder_count);
   const rank = typeof body.rank === "number" ? body.rank : Number(body.rank);
 
   if (!contractAddress) {
@@ -347,6 +355,7 @@ const handleLeaderboardPost = async (req, res) => {
     score,
     mcap,
     buyVolumeUsd,
+    holderCount,
     rank,
     posted,
   });
@@ -384,7 +393,7 @@ const handleLeaderboardCron = async (req, res, url) => {
 
   const { data, error } = await sb
     .from(SUPABASE_LEADERBOARD_VIEW)
-    .select("contract_address,symbol,mcap,buy_volume_usd,score")
+    .select("contract_address,symbol,mcap,buy_volume_usd,holder_count,score")
     .order("score", { ascending: false })
     .limit(5);
 
@@ -408,6 +417,10 @@ const handleLeaderboardCron = async (req, res, url) => {
       typeof row.buy_volume_usd === "number"
         ? row.buy_volume_usd
         : Number(row.buy_volume_usd);
+    const holderCount =
+      typeof row.holder_count === "number"
+        ? row.holder_count
+        : Number(row.holder_count);
     const rank = i + 1;
 
     try {
@@ -417,6 +430,7 @@ const handleLeaderboardCron = async (req, res, url) => {
         score,
         mcap,
         buyVolumeUsd,
+        holderCount,
         rank,
         posted,
       });
@@ -511,7 +525,7 @@ const runLeaderboardCronOnce = async () => {
 
   const { data, error } = await sb
     .from(SUPABASE_LEADERBOARD_VIEW)
-    .select("contract_address,symbol,mcap,buy_volume_usd,score")
+    .select("contract_address,symbol,mcap,buy_volume_usd,holder_count,score")
     .order("score", { ascending: false })
     .limit(5);
 
@@ -534,6 +548,10 @@ const runLeaderboardCronOnce = async () => {
       typeof row.buy_volume_usd === "number"
         ? row.buy_volume_usd
         : Number(row.buy_volume_usd);
+    const holderCount =
+      typeof row.holder_count === "number"
+        ? row.holder_count
+        : Number(row.holder_count);
     const rank = i + 1;
 
     try {
@@ -543,6 +561,7 @@ const runLeaderboardCronOnce = async () => {
         score,
         mcap,
         buyVolumeUsd,
+        holderCount,
         rank,
         posted,
       });

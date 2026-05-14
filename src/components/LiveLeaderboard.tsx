@@ -157,6 +157,7 @@ const isCompleteLeaderboardRow = (row: LeaderboardRow) => {
 const shouldPostToX = (row: LeaderboardRow, rank: number) => {
   if (row.contractAddress == null) return false;
   if (row.score == null || !Number.isFinite(row.score) || row.score <= 100) return false;
+  if (row.holderCount == null || !Number.isFinite(row.holderCount)) return false;
   if (rank < 1 || rank > 5) return false;
   if (
     row.mcap != null &&
@@ -398,6 +399,7 @@ export default function LiveLeaderboard() {
               score: row.score,
               mcap: row.mcap,
               buyVolumeUsd: row.buyVolumeUsd,
+              holderCount: row.holderCount,
               rank,
             }),
           });
