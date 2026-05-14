@@ -9,6 +9,7 @@ type LeaderboardRow = {
   mcap: number | null;
   buyVolumeUsd: number | null;
   buyCount: number | null;
+  holderCount: number | null;
   updatedAt: string | null;
   score: number | null;
 };
@@ -74,6 +75,12 @@ const normalizeRow = (raw: Record<string, unknown>): LeaderboardRow => {
 
   const buyCount = getNumber(raw.buy_count) ?? getNumber(raw.buys) ?? null;
 
+  const holderCount =
+    getNumber(raw.holder_count) ??
+    getNumber(raw.holders) ??
+    getNumber(raw.holderCount) ??
+    null;
+
   const updatedAt =
     getString(raw.updated_at) ?? getString(raw.updatedAt) ?? null;
 
@@ -90,6 +97,7 @@ const normalizeRow = (raw: Record<string, unknown>): LeaderboardRow => {
     mcap,
     buyVolumeUsd,
     buyCount,
+    holderCount,
     updatedAt,
     score,
   };
@@ -271,7 +279,7 @@ export default function LiveLeaderboard() {
       setIsLoading(true);
       setError(null);
       const selectFields =
-        "contract_address,dex,symbol,mcap,buy_volume_usd,buy_count,updated_at,score";
+        "contract_address,dex,symbol,mcap,buy_volume_usd,buy_count,holder_count,updated_at,score";
 
       const targetCount = limit;
       const pageSize = 100;
@@ -580,16 +588,21 @@ export default function LiveLeaderboard() {
                     {row.score == null ? "—" : formatScore(row.score)}
                   </span>
                 </div>
-                <div className="mt-1 grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-1 text-xs text-gray-400">
+                <div className="mt-1 grid grid-cols-1 sm:grid-cols-4 gap-x-3 gap-y-1 text-xs text-gray-400">
                   <span className="tabular-nums">
                     MCAP {row.mcap == null ? "—" : formatCompact(row.mcap)}
                   </span>
                   <span className="tabular-nums sm:text-center">
                     1h Vol {row.buyVolumeUsd == null ? "—" : `$${formatCompact(row.buyVolumeUsd)}`}
                   </span>
-                  <span className="tabular-nums sm:text-right">
+                  <span className="tabular-nums sm:text-center">
                     1h Buys {row.buyCount == null ? "—" : formatCompact(row.buyCount)}
                   </span>
+                  {row.holderCount == null ? null : (
+                    <span className="tabular-nums sm:text-right">
+                      👥 {formatCompact(row.holderCount)}
+                    </span>
+                  )}
                 </div>
               </div>
             )})}
