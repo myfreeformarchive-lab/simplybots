@@ -53,6 +53,18 @@ const sendJson = (res, statusCode, payload) => {
   res.end(body);
 };
 
+const getOptionalNumber = (value) => {
+  if (value == null) return null;
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
+
 const readPostedSet = async () => {
   try {
     const raw = await fs.readFile(STORE_PATH, "utf8");
@@ -227,11 +239,15 @@ const processLeaderboardCandidate = async ({
   if (!addr) return { ok: false, status: "error", error: "Missing contractAddress" };
   if (posted.has(addr)) return { ok: true, status: "skipped", reason: "duplicate" };
 
-  const scoreOk = Number.isFinite(score) && score > 100;
-  const rankOk = Number.isFinite(rank) && rank >= 1 && rank <= 5;
-  const holderOk = Number.isFinite(holderCount);
+  const scoreOk = score != null && Number.isFinite(score) && score > 100;
+  const rankOk = rank != null && Number.isFinite(rank) && rank >= 1 && rank <= 5;
+  const holderOk = holderCount != null && Number.isFinite(holderCount);
   const warning =
-    Number.isFinite(mcap) && Number.isFinite(buyVolumeUsd) && buyVolumeUsd > mcap;
+    mcap != null &&
+    buyVolumeUsd != null &&
+    Number.isFinite(mcap) &&
+    Number.isFinite(buyVolumeUsd) &&
+    buyVolumeUsd > mcap;
   const warningOk = !warning;
 
   if (!scoreOk || !rankOk || !holderOk || !warningOk) {
@@ -318,19 +334,11 @@ const handleLeaderboardPost = async (req, res) => {
   const contractAddress =
     typeof body.contractAddress === "string" ? body.contractAddress.trim() : "";
   const symbol = typeof body.symbol === "string" ? body.symbol : null;
-  const score = typeof body.score === "number" ? body.score : Number(body.score);
-  const mcap = typeof body.mcap === "number" ? body.mcap : Number(body.mcap);
-  const buyVolumeUsd =
-    typeof body.buyVolumeUsd === "number"
-      ? body.buyVolumeUsd
-      : Number(body.buyVolumeUsd);
-  const holderCount =
-    typeof body.holderCount === "number"
-      ? body.holderCount
-      : typeof body.holder_count === "number"
-        ? body.holder_count
-        : Number(body.holderCount ?? body.holder_count);
-  const rank = typeof body.rank === "number" ? body.rank : Number(body.rank);
+  const score = getOptionalNumber(body.score);
+  const mcap = getOptionalNumber(body.mcap);
+  const buyVolumeUsd = getOptionalNumber(body.buyVolumeUsd);
+  const holderCount = getOptionalNumber(body.holderCount ?? body.holder_count);
+  const rank = getOptionalNumber(body.rank);
 
   if (!contractAddress) {
     sendJson(res, 400, { ok: false, error: "Missing contractAddress" });
@@ -411,16 +419,10 @@ const handleLeaderboardCron = async (req, res, url) => {
     const contractAddress =
       typeof row.contract_address === "string" ? row.contract_address : "";
     const symbol = typeof row.symbol === "string" ? row.symbol : null;
-    const score = typeof row.score === "number" ? row.score : Number(row.score);
-    const mcap = typeof row.mcap === "number" ? row.mcap : Number(row.mcap);
-    const buyVolumeUsd =
-      typeof row.buy_volume_usd === "number"
-        ? row.buy_volume_usd
-        : Number(row.buy_volume_usd);
-    const holderCount =
-      typeof row.holder_count === "number"
-        ? row.holder_count
-        : Number(row.holder_count);
+    const score = getOptionalNumber(row.score);
+    const mcap = getOptionalNumber(row.mcap);
+    const buyVolumeUsd = getOptionalNumber(row.buy_volume_usd);
+    const holderCount = getOptionalNumber(row.holder_count);
     const rank = i + 1;
 
     try {
@@ -542,16 +544,10 @@ const runLeaderboardCronOnce = async () => {
     const contractAddress =
       typeof row.contract_address === "string" ? row.contract_address : "";
     const symbol = typeof row.symbol === "string" ? row.symbol : null;
-    const score = typeof row.score === "number" ? row.score : Number(row.score);
-    const mcap = typeof row.mcap === "number" ? row.mcap : Number(row.mcap);
-    const buyVolumeUsd =
-      typeof row.buy_volume_usd === "number"
-        ? row.buy_volume_usd
-        : Number(row.buy_volume_usd);
-    const holderCount =
-      typeof row.holder_count === "number"
-        ? row.holder_count
-        : Number(row.holder_count);
+    const score = getOptionalNumber(row.score);
+    const mcap = getOptionalNumber(row.mcap);
+    const buyVolumeUsd = getOptionalNumber(row.buy_volume_usd);
+    const holderCount = getOptionalNumber(row.holder_count);
     const rank = i + 1;
 
     try {
