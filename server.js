@@ -23,6 +23,7 @@ const X_POST_CRON_SECRET = process.env.X_POST_CRON_SECRET ?? "";
 const SUPABASE_URL = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL ?? "";
 const SUPABASE_KEY =
   process.env.SUPABASE_SERVICE_ROLE_KEY ??
+  process.env.SUPABASE_SERVICE_KEY ??
   process.env.SUPABASE_ANON_KEY ??
   process.env.VITE_SUPABASE_ANON_KEY ??
   "";
@@ -30,6 +31,19 @@ const SUPABASE_LEADERBOARD_VIEW =
   process.env.SUPABASE_LEADERBOARD_VIEW ??
   process.env.VITE_SUPABASE_LEADERBOARD_VIEW ??
   "global_leaderboard_scored";
+const SUPABASE_LEADERBOARD_SNAPSHOT_TABLE =
+  process.env.SUPABASE_LEADERBOARD_SNAPSHOT_TABLE ?? "leaderboard_history";
+const LEADERBOARD_SNAPSHOT_ENABLED = process.env.LEADERBOARD_SNAPSHOT_ENABLED === "1";
+const LEADERBOARD_SNAPSHOT_LIMIT = (() => {
+  const parsed = Number(process.env.LEADERBOARD_SNAPSHOT_LIMIT ?? 30);
+  return Number.isFinite(parsed) && parsed > 0 ? Math.min(250, Math.floor(parsed)) : 30;
+})();
+const LEADERBOARD_SNAPSHOT_INTERVAL_MS = (() => {
+  const raw = process.env.LEADERBOARD_SNAPSHOT_INTERVAL_MS ?? "300000";
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed >= 60_000 ? parsed : 300_000;
+})();
+const LEADERBOARD_SNAPSHOT_SECRET = process.env.LEADERBOARD_SNAPSHOT_SECRET ?? "";
 
 const readJsonBody = async (req) => {
   const chunks = [];
@@ -65,6 +79,12 @@ const getOptionalNumber = (value) => {
   return null;
 };
 
+const getOptionalString = (value) => {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  return trimmed ? trimmed : null;
+};
+
 const readPostedSet = async () => {
   try {
     const raw = await fs.readFile(STORE_PATH, "utf8");
@@ -98,6 +118,149 @@ const getCronSecret = (req, url) => {
   if (auth.toLowerCase().startsWith("bearer ")) return auth.slice(7).trim();
   const q = url.searchParams.get("secret");
   return typeof q === "string" ? q.trim() : "";
+};
+
+const leaderboardSnapshotState = {
+  enabled: LEADERBOARD_SNAPSHOT_ENABLED,
+  lastAttemptAt: null,
+  lastOkAt: null,
+  lastSnapshotAt: null,
+  lastInserted: null,
+  lastError: null,
+};
+
+const getSnapshotBucketIso = () => {
+  const bucketMs =
+    Math.floor(Date.now() / LEADERBOARD_SNAPSHOT_INTERVAL_MS) * LEADERBOARD_SNAPSHOT_INTERVAL_MS;
+  return new Date(bucketMs).toISOString();
+};
+
+const takeLeaderboardSnapshot = async ({ sb }) => {
+  const snapshotAt = getSnapshotBucketIso();
+  leaderboardSnapshotState.lastAttemptAt = new Date().toISOString();
+  leaderboardSnapshotState.lastError = null;
+
+  const { data, error } = await sb
+    .from(SUPABASE_LEADERBOARD_VIEW)
+    .select("*")
+    .order("score", { ascending: false })
+    .limit(LEADERBOARD_SNAPSHOT_LIMIT);
+
+  if (error) {
+    leaderboardSnapshotState.lastError = {
+      stage: "select",
+      message: error.message,
+      code: error.code ?? null,
+    };
+    return { ok: false, error: "Failed to load leaderboard", details: error };
+  }
+
+  const rows = Array.isArray(data) ? data : [];
+  if (rows.length === 0) {
+    leaderboardSnapshotState.lastOkAt = new Date().toISOString();
+    leaderboardSnapshotState.lastSnapshotAt = snapshotAt;
+    leaderboardSnapshotState.lastInserted = 0;
+    return { ok: true, snapshotAt, inserted: 0 };
+  }
+
+  const payload = rows.map((row, idx) => {
+    const r = row ?? {};
+    const contractAddress = getOptionalString(r.contract_address) ?? "";
+    const dex = getOptionalString(r.dex);
+    const symbol = getOptionalString(r.symbol);
+    const mcap = getOptionalNumber(r.mcap);
+    const buyVolumeUsd = getOptionalNumber(r.buy_volume_usd);
+    const buyCount = getOptionalNumber(r.buy_count);
+    const holderCount = getOptionalNumber(r.holder_count);
+    const score = getOptionalNumber(r.score);
+    const sourceUpdatedAt = getOptionalString(r.updated_at);
+
+    return {
+      snapshot_at: snapshotAt,
+      view_name: SUPABASE_LEADERBOARD_VIEW,
+      rank: idx + 1,
+      contract_address: contractAddress,
+      dex,
+      symbol,
+      mcap,
+      buy_volume_usd: buyVolumeUsd,
+      buy_count: buyCount == null ? null : Math.floor(buyCount),
+      holder_count: holderCount == null ? null : Math.floor(holderCount),
+      score,
+      source_updated_at: sourceUpdatedAt,
+      payload: r,
+    };
+  });
+
+  const valid = payload.filter((r) => typeof r.contract_address === "string" && r.contract_address);
+  if (valid.length === 0) return { ok: true, snapshotAt, inserted: 0 };
+
+  const insertResult = await sb
+    .from(SUPABASE_LEADERBOARD_SNAPSHOT_TABLE)
+    .upsert(valid, { onConflict: "snapshot_at,contract_address", ignoreDuplicates: true });
+
+  if (insertResult.error) {
+    leaderboardSnapshotState.lastError = {
+      stage: "upsert",
+      message: insertResult.error.message,
+      code: insertResult.error.code ?? null,
+    };
+    return { ok: false, error: "Failed to insert snapshot", details: insertResult.error };
+  }
+
+  leaderboardSnapshotState.lastOkAt = new Date().toISOString();
+  leaderboardSnapshotState.lastSnapshotAt = snapshotAt;
+  leaderboardSnapshotState.lastInserted = valid.length;
+  return { ok: true, snapshotAt, inserted: valid.length };
+};
+
+let leaderboardSnapshotTimer = null;
+let isTakingSnapshot = false;
+const startLeaderboardSnapshotScheduler = () => {
+  if (!LEADERBOARD_SNAPSHOT_ENABLED) return { ok: true, enabled: false };
+
+  const sb = getSupabase();
+  if (!sb) {
+    leaderboardSnapshotState.lastError = {
+      stage: "init",
+      message: "Supabase credentials not configured",
+      code: null,
+    };
+    return { ok: false, error: "Supabase credentials not configured" };
+  }
+
+  if (leaderboardSnapshotTimer) return { ok: true, enabled: true, status: "already_running" };
+
+  const tick = async () => {
+    if (isTakingSnapshot) return;
+    isTakingSnapshot = true;
+    try {
+      const result = await takeLeaderboardSnapshot({ sb });
+      if (!result.ok) {
+        process.stdout.write(
+          `leaderboard snapshot failed: ${JSON.stringify({ error: result.error, details: leaderboardSnapshotState.lastError })}\n`,
+        );
+      } else {
+        process.stdout.write(
+          `leaderboard snapshot ok: ${JSON.stringify({ snapshotAt: result.snapshotAt, inserted: result.inserted })}\n`,
+        );
+      }
+    } finally {
+      isTakingSnapshot = false;
+    }
+  };
+
+  leaderboardSnapshotTimer = setInterval(tick, LEADERBOARD_SNAPSHOT_INTERVAL_MS);
+  process.stdout.write(
+    `leaderboard snapshot scheduler enabled: ${JSON.stringify({
+      intervalMs: LEADERBOARD_SNAPSHOT_INTERVAL_MS,
+      limit: LEADERBOARD_SNAPSHOT_LIMIT,
+      table: SUPABASE_LEADERBOARD_SNAPSHOT_TABLE,
+      view: SUPABASE_LEADERBOARD_VIEW,
+    })}\n`,
+  );
+  void tick();
+  return { ok: true, enabled: true };
 };
 
 const percentEncode = (value) =>
@@ -587,6 +750,116 @@ const startWebServer = () => {
         return;
       }
 
+      if (url.pathname === "/api/leaderboard/snapshot/status") {
+        if (req.method !== "GET") {
+          sendJson(res, 405, { ok: false, error: "Method not allowed" });
+          return;
+        }
+        sendJson(res, 200, {
+          ok: true,
+          state: leaderboardSnapshotState,
+          config: {
+            enabled: LEADERBOARD_SNAPSHOT_ENABLED,
+            intervalMs: LEADERBOARD_SNAPSHOT_INTERVAL_MS,
+            limit: LEADERBOARD_SNAPSHOT_LIMIT,
+            view: SUPABASE_LEADERBOARD_VIEW,
+            table: SUPABASE_LEADERBOARD_SNAPSHOT_TABLE,
+            hasSupabaseUrl: Boolean(SUPABASE_URL),
+            keyType: SUPABASE_KEY
+              ? SUPABASE_KEY === (process.env.SUPABASE_SERVICE_ROLE_KEY ?? "")
+              ? "service_role"
+              : SUPABASE_KEY === (process.env.SUPABASE_SERVICE_KEY ?? "")
+                ? "service_role"
+                : "anon_or_other"
+              : "missing",
+          },
+        });
+        return;
+      }
+
+      if (url.pathname === "/api/leaderboard/snapshot/run") {
+        if (req.method !== "POST") {
+          sendJson(res, 405, { ok: false, error: "Method not allowed" });
+          return;
+        }
+
+        if (LEADERBOARD_SNAPSHOT_SECRET) {
+          const token = getCronSecret(req, url);
+          if (!token || token !== LEADERBOARD_SNAPSHOT_SECRET) {
+            sendJson(res, 403, { ok: false, error: "Forbidden" });
+            return;
+          }
+        }
+
+        const sb = getSupabase();
+        if (!sb) {
+          sendJson(res, 503, { ok: false, error: "Supabase credentials not configured" });
+          return;
+        }
+
+        const result = await takeLeaderboardSnapshot({ sb });
+        sendJson(res, result.ok ? 200 : 500, result);
+        return;
+      }
+
+      if (url.pathname === "/api/leaderboard/history") {
+        if (req.method !== "GET") {
+          sendJson(res, 405, { ok: false, error: "Method not allowed" });
+          return;
+        }
+
+        const sb = getSupabase();
+        if (!sb) {
+          sendJson(res, 503, { ok: false, error: "Supabase credentials not configured" });
+          return;
+        }
+
+        const minHolders = getOptionalNumber(url.searchParams.get("min_holders")) ?? 0;
+        const limitRaw = getOptionalNumber(url.searchParams.get("limit")) ?? 30;
+        const limit = Math.min(250, Math.max(1, Math.floor(limitRaw)));
+
+        const snapshotAtParam = getOptionalString(url.searchParams.get("snapshot_at"));
+        let snapshotAt = snapshotAtParam;
+        if (!snapshotAt) {
+          const latest = await sb
+            .from(SUPABASE_LEADERBOARD_SNAPSHOT_TABLE)
+            .select("snapshot_at")
+            .order("snapshot_at", { ascending: false })
+            .limit(1);
+
+          if (latest.error) {
+            sendJson(res, 500, { ok: false, error: "Failed to load snapshots" });
+            return;
+          }
+          snapshotAt = getOptionalString(latest.data?.[0]?.snapshot_at);
+        }
+
+        if (!snapshotAt) {
+          sendJson(res, 200, { ok: true, snapshotAt: null, rows: [] });
+          return;
+        }
+
+        let query = sb
+          .from(SUPABASE_LEADERBOARD_SNAPSHOT_TABLE)
+          .select(
+            "snapshot_at,view_name,rank,contract_address,dex,symbol,mcap,buy_volume_usd,buy_count,holder_count,score,source_updated_at",
+          )
+          .eq("snapshot_at", snapshotAt)
+          .order("rank", { ascending: true })
+          .limit(limit);
+
+        if (minHolders > 0) query = query.gte("holder_count", Math.floor(minHolders));
+
+        const { data, error } = await query;
+        if (error) {
+          sendJson(res, 500, { ok: false, error: "Failed to load leaderboard history" });
+          return;
+        }
+
+        sendJson(res, 200, { ok: true, snapshotAt, rows: data ?? [] });
+        return;
+      }
+
       if (url.pathname === "/api/x/liveleaderboard") {
         if (req.method !== "POST") {
           sendJson(res, 405, { ok: false, error: "Method not allowed" });
@@ -614,6 +887,8 @@ const startWebServer = () => {
   server.listen(PORT, () => {
     process.stdout.write(`server listening on :${PORT}\n`);
   });
+
+  startLeaderboardSnapshotScheduler();
 };
 
 if (process.env.RUN_LEADERBOARD_CRON === "1") {
