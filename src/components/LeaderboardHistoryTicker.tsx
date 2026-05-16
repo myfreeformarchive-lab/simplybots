@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 type HistoryRow = {
   contract_address: string;
@@ -36,6 +37,7 @@ const formatSymbol = (symbol: string | null, contractAddress: string) => {
 
 export default function LeaderboardHistoryTicker() {
   const [rows, setRows] = useState<HistoryRow[]>([]);
+  const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
 
   const url = useMemo(() => {
     const params = new URLSearchParams();
@@ -50,6 +52,33 @@ export default function LeaderboardHistoryTicker() {
 
     const fetchRows = async () => {
       try {
+        if (isSupabaseConfigured && supabase) {
+          const { data, error } = await supabase
+            .from("leaderboard_history")
+            .select("contract_address,dex,symbol,mcap,holder_count,seen_count,updated_at")
+            .gte("holder_count", 10000)
+            .order("seen_count", { ascending: false })
+            .order("holder_count", { ascending: false })
+            .order("updated_at", { ascending: false })
+            .limit(30);
+
+          if (cancelled) return;
+          if (error) {
+            setRows([]);
+            setHasLoadedOnce(true);
+            return;
+          }
+
+          const normalized = (data ?? [])
+            .filter((r): r is HistoryRow => Boolean(r && typeof r === "object"))
+            .filter((r) => typeof r.contract_address === "string" && r.contract_address.trim())
+            .slice(0, 30);
+
+          setRows(normalized);
+          setHasLoadedOnce(true);
+          return;
+        }
+
         const resp = await fetch(url, { method: "GET" });
         const raw = await resp.json().catch(() => null);
         if (cancelled) return;
@@ -59,9 +88,11 @@ export default function LeaderboardHistoryTicker() {
           .filter((r) => typeof r.contract_address === "string" && r.contract_address.trim())
           .slice(0, 30);
         setRows(normalized);
+        setHasLoadedOnce(true);
       } catch {
         if (cancelled) return;
         setRows([]);
+        setHasLoadedOnce(true);
       }
     };
 
@@ -75,7 +106,15 @@ export default function LeaderboardHistoryTicker() {
   }, [url]);
 
   const items = useMemo(() => rows.filter((r) => r.holder_count != null), [rows]);
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    return (
+      <div className="glass-card border-white/10 px-4 py-3">
+        <div className="text-xs text-gray-500 tabular-nums">
+          {hasLoadedOnce ? "No leaderboard history yet." : "Loading leaderboard history..."}
+        </div>
+      </div>
+    );
+  }
 
   const renderItem = (row: HistoryRow, idx: number, suffix: string) => {
     const contract = row.contract_address.trim();
