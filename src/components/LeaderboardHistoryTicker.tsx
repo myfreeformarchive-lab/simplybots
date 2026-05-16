@@ -201,17 +201,30 @@ export default function LeaderboardHistoryTicker() {
 
     let raf = 0;
     let lastTs = 0;
-    let x = 0;
+    const container = track.parentElement as HTMLElement | null;
+    let containerWidth = container?.getBoundingClientRect().width ?? 0;
+    let trackWidth = track.scrollWidth;
+    let x = containerWidth;
     const speedPxPerSec = 40;
 
-    const getGapPx = () => {
-      const style = window.getComputedStyle(track);
-      const gap = style.columnGap || style.gap || "0px";
-      const n = Number.parseFloat(gap);
-      return Number.isFinite(n) ? n : 0;
+    const updateSizes = () => {
+      containerWidth = container?.getBoundingClientRect().width ?? 0;
+      trackWidth = track.scrollWidth;
     };
 
-    let gapPx = getGapPx();
+    updateSizes();
+
+    const ro =
+      typeof ResizeObserver !== "undefined"
+        ? new ResizeObserver(() => {
+            updateSizes();
+          })
+        : null;
+
+    if (ro) {
+      if (container) ro.observe(container);
+      ro.observe(track);
+    }
 
     const tick = (ts: number) => {
       if (lastTs === 0) lastTs = ts;
@@ -219,17 +232,9 @@ export default function LeaderboardHistoryTicker() {
       lastTs = ts;
 
       if (!pausedRef.current) {
-        gapPx = gapPx || getGapPx();
         x -= (speedPxPerSec * dt) / 1000;
-
-        let first = track.firstElementChild as HTMLElement | null;
-        while (first) {
-          const firstWidth = first.getBoundingClientRect().width;
-          if (!Number.isFinite(firstWidth) || firstWidth <= 0) break;
-          if (-x < firstWidth + gapPx) break;
-          x += firstWidth + gapPx;
-          track.appendChild(first);
-          first = track.firstElementChild as HTMLElement | null;
+        if (trackWidth > 0 && x <= -trackWidth) {
+          x = containerWidth;
         }
 
         track.style.transform = `translate3d(${x}px, 0, 0)`;
@@ -240,6 +245,7 @@ export default function LeaderboardHistoryTicker() {
 
     raf = window.requestAnimationFrame(tick);
     return () => {
+      if (ro) ro.disconnect();
       window.cancelAnimationFrame(raf);
     };
   }, [items.length]);
