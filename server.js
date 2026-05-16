@@ -44,6 +44,7 @@ const LEADERBOARD_SNAPSHOT_INTERVAL_MS = (() => {
   return Number.isFinite(parsed) && parsed >= 60_000 ? parsed : 300_000;
 })();
 const LEADERBOARD_SNAPSHOT_SECRET = process.env.LEADERBOARD_SNAPSHOT_SECRET ?? "";
+const LEADERBOARD_SNAPSHOT_MIN_HOLDER_COUNT = 10_000;
 
 const readJsonBody = async (req) => {
   const chunks = [];
@@ -192,7 +193,15 @@ const takeLeaderboardSnapshot = async ({ sb }) => {
     };
   });
 
-  const valid = payload.filter((r) => typeof r.contract_address === "string" && r.contract_address);
+  const valid = payload.filter((r) => {
+    if (typeof r.contract_address !== "string" || !r.contract_address) return false;
+    if (LEADERBOARD_SNAPSHOT_MIN_HOLDER_COUNT <= 0) return true;
+    return (
+      typeof r.holder_count === "number" &&
+      Number.isFinite(r.holder_count) &&
+      r.holder_count >= LEADERBOARD_SNAPSHOT_MIN_HOLDER_COUNT
+    );
+  });
   if (valid.length === 0) return { ok: true, snapshotAt, inserted: 0 };
 
   const insertResult = await sb
@@ -255,6 +264,7 @@ const startLeaderboardSnapshotScheduler = () => {
     `leaderboard snapshot scheduler enabled: ${JSON.stringify({
       intervalMs: LEADERBOARD_SNAPSHOT_INTERVAL_MS,
       limit: LEADERBOARD_SNAPSHOT_LIMIT,
+      minHolderCount: LEADERBOARD_SNAPSHOT_MIN_HOLDER_COUNT,
       table: SUPABASE_LEADERBOARD_SNAPSHOT_TABLE,
       view: SUPABASE_LEADERBOARD_VIEW,
     })}\n`,
@@ -762,6 +772,7 @@ const startWebServer = () => {
             enabled: LEADERBOARD_SNAPSHOT_ENABLED,
             intervalMs: LEADERBOARD_SNAPSHOT_INTERVAL_MS,
             limit: LEADERBOARD_SNAPSHOT_LIMIT,
+            minHolderCount: LEADERBOARD_SNAPSHOT_MIN_HOLDER_COUNT,
             view: SUPABASE_LEADERBOARD_VIEW,
             table: SUPABASE_LEADERBOARD_SNAPSHOT_TABLE,
             hasSupabaseUrl: Boolean(SUPABASE_URL),
