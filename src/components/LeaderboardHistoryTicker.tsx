@@ -187,15 +187,6 @@ export default function LeaderboardHistoryTicker() {
   }, [imagesByAddress, rows]);
 
   const items = useMemo(() => rows.filter((r) => r.holder_count != null), [rows]);
-  if (items.length === 0) {
-    return (
-      <div className="glass-card border-white/10 px-4 py-3">
-        <div className="text-xs text-gray-500 tabular-nums">
-          {hasLoadedOnce ? "No leaderboard history yet." : "Loading leaderboard history..."}
-        </div>
-      </div>
-    );
-  }
 
   useEffect(() => {
     const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
@@ -203,6 +194,10 @@ export default function LeaderboardHistoryTicker() {
 
     const track = trackRef.current;
     if (!track) return;
+    if (items.length === 0) {
+      track.style.transform = "translate3d(0, 0, 0)";
+      return;
+    }
 
     let raf = 0;
     let lastTs = 0;
@@ -248,6 +243,16 @@ export default function LeaderboardHistoryTicker() {
       window.cancelAnimationFrame(raf);
     };
   }, [items.length]);
+
+  if (items.length === 0) {
+    return (
+      <div className="glass-card border-white/10 px-4 py-3">
+        <div className="text-xs text-gray-500 tabular-nums">
+          {hasLoadedOnce ? "No leaderboard history yet." : "Loading leaderboard history..."}
+        </div>
+      </div>
+    );
+  }
 
   const renderItem = (row: HistoryRow) => {
     const contract = row.contract_address.trim();
