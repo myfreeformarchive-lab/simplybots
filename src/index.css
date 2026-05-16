@@ -48,4 +48,34 @@
     box-shadow: 0 0 15px rgba(20, 241, 149, 0.2), inset 0 0 15px rgba(20, 241, 149, 0.1);
     border-color: rgba(20, 241, 149, 0.5);
   }
+
+  @keyframes sb-ticker-scroll {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .sb-ticker {
+    overflow: hidden;
+  }
+
+  .sb-ticker__track {
+    width: max-content;
+    animation: sb-ticker-scroll 40s linear infinite;
+    will-change: transform;
+  }
+
+  .sb-ticker:hover .sb-ticker__track {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sb-ticker__track {
+      animation: none;
+      transform: none;
+    }
+  }
 }

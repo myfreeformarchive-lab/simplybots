@@ -3,6 +3,7 @@ import HeroSection from "@/components/HeroSection";
 import LiveLeaderboard from "@/components/LiveLeaderboard";
 import DiamondHandsFeed from "@/components/DiamondHandsFeed";
 import ShoutoutsFeed from "@/components/ShoutoutsFeed";
+import LeaderboardHistoryTicker from "@/components/LeaderboardHistoryTicker";
 import Footer from "@/components/Footer";
 
 export default function Home() {
@@ -21,6 +22,10 @@ export default function Home() {
             <p className="text-gray-400 mt-2 max-w-2xl">
               A real-time snapshot pulled directly from the SimplyBots ecosystem.
             </p>
+          </div>
+
+          <div className="mb-3">
+            <LeaderboardHistoryTicker />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
