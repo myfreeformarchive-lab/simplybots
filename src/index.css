@@ -51,10 +51,10 @@
 
   @keyframes sb-ticker-scroll {
     0% {
-      transform: translateX(100%);
+      transform: translate3d(0, 0, 0);
     }
     100% {
-      transform: translateX(-100%);
+      transform: translate3d(-50%, 0, 0);
     }
   }
 
@@ -64,7 +64,7 @@
 
   .sb-ticker__track {
     width: max-content;
-    animation: sb-ticker-scroll 40s linear infinite;
+    animation: sb-ticker-scroll 35s linear infinite;
     will-change: transform;
   }
 

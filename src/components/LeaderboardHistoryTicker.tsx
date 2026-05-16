@@ -11,6 +11,11 @@ type HistoryRow = {
   updated_at: string | null;
 };
 
+type TokenPair = {
+  baseToken?: { address?: string };
+  info?: { imageUrl?: string };
+};
+
 const DISPLAY_LOCALE = "en-US";
 
 const formatCompact = (value: number) => {
@@ -35,9 +40,44 @@ const formatSymbol = (symbol: string | null, contractAddress: string) => {
   return `${addr.slice(0, 4)}…${addr.slice(-4)}`;
 };
 
+const isHttpUrl = (value: string) => value.startsWith("http://") || value.startsWith("https://");
+
+const toHttpImageUrl = (value: string | null) => {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (isHttpUrl(trimmed)) return trimmed;
+  if (trimmed.startsWith("ipfs://")) {
+    const cidPath = trimmed.slice("ipfs://".length).replace(/^ipfs\//, "");
+    return `https://ipfs.io/ipfs/${cidPath}`;
+  }
+  return trimmed;
+};
+
+const normalizeAddress = (value: string) => value.trim().toLowerCase();
+
+const chunk = <T,>(items: T[], size: number) => {
+  if (size <= 0) return [items];
+  const out: T[][] = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+};
+
+const fetchTokenPairs = async (tokenAddresses: string[]) => {
+  if (tokenAddresses.length === 0) return [];
+  const url = `https://api.dexscreener.com/latest/dex/tokens/${tokenAddresses.map(encodeURIComponent).join(",")}`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const json = (await res.json()) as unknown;
+  const record = json as { pairs?: unknown };
+  if (!record || typeof record !== "object" || !Array.isArray(record.pairs)) return [];
+  return record.pairs as TokenPair[];
+};
+
 export default function LeaderboardHistoryTicker() {
   const [rows, setRows] = useState<HistoryRow[]>([]);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
+  const [imagesByAddress, setImagesByAddress] = useState<Record<string, string>>({});
 
   const url = useMemo(() => {
     const params = new URLSearchParams();
@@ -105,6 +145,45 @@ export default function LeaderboardHistoryTicker() {
     };
   }, [url]);
 
+  useEffect(() => {
+    if (rows.length === 0) return;
+
+    const addresses = rows
+      .map((r) => r.contract_address)
+      .filter((a) => typeof a === "string" && a.trim())
+      .map((a) => a.trim());
+
+    const missing = addresses.filter((a) => !imagesByAddress[normalizeAddress(a)]);
+    if (missing.length === 0) return;
+
+    let cancelled = false;
+
+    const load = async () => {
+      const batches = chunk(missing.slice(0, 60), 30);
+      const next: Record<string, string> = {};
+
+      for (const batch of batches) {
+        const pairs = await fetchTokenPairs(batch);
+        for (const p of pairs) {
+          const addr = p.baseToken?.address;
+          const imageUrl = toHttpImageUrl(p.info?.imageUrl ?? null);
+          if (!addr || !imageUrl) continue;
+          const key = normalizeAddress(addr);
+          if (!next[key]) next[key] = imageUrl;
+        }
+      }
+
+      if (cancelled) return;
+      if (Object.keys(next).length === 0) return;
+      setImagesByAddress((prev) => ({ ...prev, ...next }));
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [imagesByAddress, rows]);
+
   const items = useMemo(() => rows.filter((r) => r.holder_count != null), [rows]);
   if (items.length === 0) {
     return (
@@ -121,12 +200,24 @@ export default function LeaderboardHistoryTicker() {
     const label = formatSymbol(row.symbol, contract);
     const mcap = row.mcap == null ? null : Number(row.mcap);
     const holders = row.holder_count == null ? null : Number(row.holder_count);
+    const imageUrl = imagesByAddress[normalizeAddress(contract)] ?? null;
 
     return (
       <div
         key={`${suffix}:${contract}:${idx}`}
         className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/10 bg-black/40 backdrop-blur-md"
       >
+        {imageUrl ? (
+          <img
+            src={imageUrl}
+            alt=""
+            loading="lazy"
+            className="h-5 w-5 rounded-full border border-white/10 object-cover"
+            onError={(e) => {
+              e.currentTarget.style.display = "none";
+            }}
+          />
+        ) : null}
         <span className="font-bold tracking-wide text-white">{label}</span>
         <span className="text-xs text-gray-400 tabular-nums">
           MCAP {mcap == null ? "—" : formatUsdCompact(mcap)}
@@ -146,6 +237,9 @@ export default function LeaderboardHistoryTicker() {
       <div className="sb-ticker__track flex items-center gap-3 py-2">
         <div className="flex items-center gap-3 pr-3">
           {items.map((row, idx) => renderItem(row, idx, "a"))}
+        </div>
+        <div className="flex items-center gap-3 pr-3" aria-hidden="true">
+          {items.map((row, idx) => renderItem(row, idx, "b"))}
         </div>
       </div>
     </div>
