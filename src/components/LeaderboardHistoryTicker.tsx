@@ -74,6 +74,27 @@ const fetchTokenPairs = async (tokenAddresses: string[]) => {
   return record.pairs as TokenPair[];
 };
 
+const sortForTicker = (list: HistoryRow[]) =>
+  list.slice().sort((a, b) => {
+    const seenA = typeof a.seen_count === "number" && Number.isFinite(a.seen_count) ? a.seen_count : -1;
+    const seenB = typeof b.seen_count === "number" && Number.isFinite(b.seen_count) ? b.seen_count : -1;
+    if (seenA !== seenB) return seenB - seenA;
+
+    const holdersA =
+      typeof a.holder_count === "number" && Number.isFinite(a.holder_count) ? a.holder_count : -1;
+    const holdersB =
+      typeof b.holder_count === "number" && Number.isFinite(b.holder_count) ? b.holder_count : -1;
+    if (holdersA !== holdersB) return holdersB - holdersA;
+
+    const updatedA = typeof a.updated_at === "string" ? a.updated_at : "";
+    const updatedB = typeof b.updated_at === "string" ? b.updated_at : "";
+    if (updatedA !== updatedB) return updatedB.localeCompare(updatedA);
+
+    const addrA = typeof a.contract_address === "string" ? a.contract_address : "";
+    const addrB = typeof b.contract_address === "string" ? b.contract_address : "";
+    return addrA.localeCompare(addrB);
+  });
+
 export default function LeaderboardHistoryTicker() {
   const [rows, setRows] = useState<HistoryRow[]>([]);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
@@ -116,7 +137,7 @@ export default function LeaderboardHistoryTicker() {
             .filter((r) => typeof r.contract_address === "string" && r.contract_address.trim())
             .slice(0, 30);
 
-          setRows(normalized);
+          setRows(sortForTicker(normalized));
           setHasLoadedOnce(true);
           return;
         }
@@ -129,7 +150,7 @@ export default function LeaderboardHistoryTicker() {
           .filter((r) => r && typeof r === "object")
           .filter((r) => typeof r.contract_address === "string" && r.contract_address.trim())
           .slice(0, 30);
-        setRows(normalized);
+        setRows(sortForTicker(normalized));
         setHasLoadedOnce(true);
       } catch {
         if (cancelled) return;
