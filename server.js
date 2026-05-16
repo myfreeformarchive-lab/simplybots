@@ -127,6 +127,7 @@ const leaderboardSnapshotState = {
   lastOkAt: null,
   lastSnapshotAt: null,
   lastInserted: null,
+  lastUpdated: null,
   lastError: null,
 };
 
@@ -138,6 +139,7 @@ const getSnapshotBucketIso = () => {
 
 const takeLeaderboardSnapshot = async ({ sb }) => {
   const snapshotAt = getSnapshotBucketIso();
+  const nowIso = new Date().toISOString();
   leaderboardSnapshotState.lastAttemptAt = new Date().toISOString();
   leaderboardSnapshotState.lastError = null;
 
@@ -161,6 +163,7 @@ const takeLeaderboardSnapshot = async ({ sb }) => {
     leaderboardSnapshotState.lastOkAt = new Date().toISOString();
     leaderboardSnapshotState.lastSnapshotAt = snapshotAt;
     leaderboardSnapshotState.lastInserted = 0;
+    leaderboardSnapshotState.lastUpdated = 0;
     return { ok: true, snapshotAt, inserted: 0 };
   }
 
@@ -202,25 +205,112 @@ const takeLeaderboardSnapshot = async ({ sb }) => {
       r.holder_count >= LEADERBOARD_SNAPSHOT_MIN_HOLDER_COUNT
     );
   });
-  if (valid.length === 0) return { ok: true, snapshotAt, inserted: 0 };
+  if (valid.length === 0) {
+    leaderboardSnapshotState.lastOkAt = new Date().toISOString();
+    leaderboardSnapshotState.lastSnapshotAt = snapshotAt;
+    leaderboardSnapshotState.lastInserted = 0;
+    leaderboardSnapshotState.lastUpdated = 0;
+    return { ok: true, snapshotAt, inserted: 0 };
+  }
 
-  const insertResult = await sb
+  const addresses = Array.from(
+    new Set(valid.map((r) => r.contract_address).filter((v) => typeof v === "string" && v)),
+  );
+
+  const existing = await sb
     .from(SUPABASE_LEADERBOARD_SNAPSHOT_TABLE)
-    .upsert(valid, { onConflict: "snapshot_at,contract_address", ignoreDuplicates: true });
+    .select("contract_address,seen_count")
+    .in("contract_address", addresses);
 
-  if (insertResult.error) {
+  if (existing.error) {
     leaderboardSnapshotState.lastError = {
-      stage: "upsert",
-      message: insertResult.error.message,
-      code: insertResult.error.code ?? null,
+      stage: "select_existing",
+      message: existing.error.message,
+      code: existing.error.code ?? null,
     };
-    return { ok: false, error: "Failed to insert snapshot", details: insertResult.error };
+    return { ok: false, error: "Failed to check existing rows", details: existing.error };
+  }
+
+  const existingMap = new Map();
+  for (const row of existing.data ?? []) {
+    const addr = getOptionalString(row?.contract_address);
+    if (!addr) continue;
+    const seen = getOptionalNumber(row?.seen_count);
+    existingMap.set(addr, typeof seen === "number" && Number.isFinite(seen) ? Math.floor(seen) : 0);
+  }
+
+  const toInsert = [];
+  const toUpdate = [];
+
+  for (const row of valid) {
+    const addr = row.contract_address;
+    if (!addr) continue;
+    if (existingMap.has(addr)) {
+      const current = existingMap.get(addr) ?? 0;
+      const next = Math.max(0, Math.floor(current)) + 1;
+      toUpdate.push({
+        ...row,
+        seen_count: next,
+        last_seen_at: nowIso,
+      });
+      continue;
+    }
+    toInsert.push({
+      ...row,
+      seen_count: 1,
+      first_seen_at: nowIso,
+      last_seen_at: nowIso,
+    });
+  }
+
+  if (toInsert.length > 0) {
+    const insertResult = await sb.from(SUPABASE_LEADERBOARD_SNAPSHOT_TABLE).insert(toInsert);
+    if (insertResult.error) {
+      leaderboardSnapshotState.lastError = {
+        stage: "insert_new",
+        message: insertResult.error.message,
+        code: insertResult.error.code ?? null,
+      };
+      return { ok: false, error: "Failed to insert new rows", details: insertResult.error };
+    }
+  }
+
+  for (const row of toUpdate) {
+    const updateResult = await sb
+      .from(SUPABASE_LEADERBOARD_SNAPSHOT_TABLE)
+      .update({
+        snapshot_at: row.snapshot_at,
+        view_name: row.view_name,
+        rank: row.rank,
+        dex: row.dex,
+        symbol: row.symbol,
+        mcap: row.mcap,
+        buy_volume_usd: row.buy_volume_usd,
+        buy_count: row.buy_count,
+        holder_count: row.holder_count,
+        score: row.score,
+        source_updated_at: row.source_updated_at,
+        payload: row.payload,
+        last_seen_at: row.last_seen_at,
+        seen_count: row.seen_count,
+      })
+      .eq("contract_address", row.contract_address);
+
+    if (updateResult.error) {
+      leaderboardSnapshotState.lastError = {
+        stage: "update_existing",
+        message: updateResult.error.message,
+        code: updateResult.error.code ?? null,
+      };
+      return { ok: false, error: "Failed to update existing rows", details: updateResult.error };
+    }
   }
 
   leaderboardSnapshotState.lastOkAt = new Date().toISOString();
   leaderboardSnapshotState.lastSnapshotAt = snapshotAt;
-  leaderboardSnapshotState.lastInserted = valid.length;
-  return { ok: true, snapshotAt, inserted: valid.length };
+  leaderboardSnapshotState.lastInserted = toInsert.length;
+  leaderboardSnapshotState.lastUpdated = toUpdate.length;
+  return { ok: true, snapshotAt, inserted: toInsert.length, updated: toUpdate.length };
 };
 
 let leaderboardSnapshotTimer = null;
@@ -251,7 +341,11 @@ const startLeaderboardSnapshotScheduler = () => {
         );
       } else {
         process.stdout.write(
-          `leaderboard snapshot ok: ${JSON.stringify({ snapshotAt: result.snapshotAt, inserted: result.inserted })}\n`,
+          `leaderboard snapshot ok: ${JSON.stringify({
+            snapshotAt: result.snapshotAt,
+            inserted: result.inserted,
+            updated: result.updated ?? 0,
+          })}\n`,
         );
       }
     } finally {
