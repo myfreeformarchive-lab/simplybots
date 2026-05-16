@@ -45,6 +45,7 @@ const LEADERBOARD_SNAPSHOT_INTERVAL_MS = (() => {
 })();
 const LEADERBOARD_SNAPSHOT_SECRET = process.env.LEADERBOARD_SNAPSHOT_SECRET ?? "";
 const LEADERBOARD_SNAPSHOT_MIN_HOLDER_COUNT = 10_000;
+const LEADERBOARD_HISTORY_PRUNE_AFTER_MS = 48 * 60 * 60 * 1000;
 
 const readJsonBody = async (req) => {
   const chunks = [];
@@ -128,6 +129,9 @@ const leaderboardSnapshotState = {
   lastSnapshotAt: null,
   lastInserted: null,
   lastUpdated: null,
+  lastPrunedAt: null,
+  lastPruned: null,
+  lastPruneError: null,
   lastError: null,
 };
 
@@ -137,11 +141,31 @@ const getSnapshotBucketIso = () => {
   return new Date(bucketMs).toISOString();
 };
 
+const pruneLeaderboardHistory = async ({ sb, nowIso }) => {
+  const nowMs = Date.parse(nowIso);
+  const cutoffMs = nowMs - LEADERBOARD_HISTORY_PRUNE_AFTER_MS;
+  if (!Number.isFinite(cutoffMs)) return { ok: true, pruned: 0 };
+  const cutoffIso = new Date(cutoffMs).toISOString();
+
+  const result = await sb
+    .from(SUPABASE_LEADERBOARD_SNAPSHOT_TABLE)
+    .delete({ count: "exact" })
+    .lt("updated_at", cutoffIso);
+
+  if (result.error) {
+    return { ok: false, error: result.error, cutoffIso };
+  }
+
+  const pruned = typeof result.count === "number" && Number.isFinite(result.count) ? result.count : 0;
+  return { ok: true, pruned, cutoffIso };
+};
+
 const takeLeaderboardSnapshot = async ({ sb }) => {
   const snapshotAt = getSnapshotBucketIso();
   const nowIso = new Date().toISOString();
   leaderboardSnapshotState.lastAttemptAt = new Date().toISOString();
   leaderboardSnapshotState.lastError = null;
+  leaderboardSnapshotState.lastPruneError = null;
 
   const { data, error } = await sb
     .from(SUPABASE_LEADERBOARD_VIEW)
@@ -160,11 +184,18 @@ const takeLeaderboardSnapshot = async ({ sb }) => {
 
   const rows = Array.isArray(data) ? data : [];
   if (rows.length === 0) {
+    const pruned = await pruneLeaderboardHistory({ sb, nowIso });
+    leaderboardSnapshotState.lastPrunedAt = new Date().toISOString();
+    leaderboardSnapshotState.lastPruned = pruned.ok ? pruned.pruned : null;
+    leaderboardSnapshotState.lastPruneError = pruned.ok
+      ? null
+      : { stage: "prune", message: pruned.error.message, code: pruned.error.code ?? null };
+
     leaderboardSnapshotState.lastOkAt = new Date().toISOString();
     leaderboardSnapshotState.lastSnapshotAt = snapshotAt;
     leaderboardSnapshotState.lastInserted = 0;
     leaderboardSnapshotState.lastUpdated = 0;
-    return { ok: true, snapshotAt, inserted: 0 };
+    return { ok: true, snapshotAt, inserted: 0, pruned: pruned.ok ? pruned.pruned : null };
   }
 
   const payload = rows.map((row) => {
@@ -195,11 +226,18 @@ const takeLeaderboardSnapshot = async ({ sb }) => {
     );
   });
   if (valid.length === 0) {
+    const pruned = await pruneLeaderboardHistory({ sb, nowIso });
+    leaderboardSnapshotState.lastPrunedAt = new Date().toISOString();
+    leaderboardSnapshotState.lastPruned = pruned.ok ? pruned.pruned : null;
+    leaderboardSnapshotState.lastPruneError = pruned.ok
+      ? null
+      : { stage: "prune", message: pruned.error.message, code: pruned.error.code ?? null };
+
     leaderboardSnapshotState.lastOkAt = new Date().toISOString();
     leaderboardSnapshotState.lastSnapshotAt = snapshotAt;
     leaderboardSnapshotState.lastInserted = 0;
     leaderboardSnapshotState.lastUpdated = 0;
-    return { ok: true, snapshotAt, inserted: 0 };
+    return { ok: true, snapshotAt, inserted: 0, pruned: pruned.ok ? pruned.pruned : null };
   }
 
   const addresses = Array.from(
@@ -298,7 +336,21 @@ const takeLeaderboardSnapshot = async ({ sb }) => {
   leaderboardSnapshotState.lastSnapshotAt = snapshotAt;
   leaderboardSnapshotState.lastInserted = toInsert.length;
   leaderboardSnapshotState.lastUpdated = toUpdate.length;
-  return { ok: true, snapshotAt, inserted: toInsert.length, updated: toUpdate.length };
+
+  const pruned = await pruneLeaderboardHistory({ sb, nowIso });
+  leaderboardSnapshotState.lastPrunedAt = new Date().toISOString();
+  leaderboardSnapshotState.lastPruned = pruned.ok ? pruned.pruned : null;
+  leaderboardSnapshotState.lastPruneError = pruned.ok
+    ? null
+    : { stage: "prune", message: pruned.error.message, code: pruned.error.code ?? null };
+
+  return {
+    ok: true,
+    snapshotAt,
+    inserted: toInsert.length,
+    updated: toUpdate.length,
+    pruned: pruned.ok ? pruned.pruned : null,
+  };
 };
 
 let leaderboardSnapshotTimer = null;
@@ -333,6 +385,7 @@ const startLeaderboardSnapshotScheduler = () => {
             snapshotAt: result.snapshotAt,
             inserted: result.inserted,
             updated: result.updated ?? 0,
+            pruned: result.pruned ?? null,
           })}\n`,
         );
       }
@@ -855,6 +908,7 @@ const startWebServer = () => {
             intervalMs: LEADERBOARD_SNAPSHOT_INTERVAL_MS,
             limit: LEADERBOARD_SNAPSHOT_LIMIT,
             minHolderCount: LEADERBOARD_SNAPSHOT_MIN_HOLDER_COUNT,
+            pruneAfterHours: 48,
             view: SUPABASE_LEADERBOARD_VIEW,
             table: SUPABASE_LEADERBOARD_SNAPSHOT_TABLE,
             hasSupabaseUrl: Boolean(SUPABASE_URL),
