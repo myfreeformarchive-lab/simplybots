@@ -167,32 +167,21 @@ const takeLeaderboardSnapshot = async ({ sb }) => {
     return { ok: true, snapshotAt, inserted: 0 };
   }
 
-  const payload = rows.map((row, idx) => {
+  const payload = rows.map((row) => {
     const r = row ?? {};
     const contractAddress = getOptionalString(r.contract_address) ?? "";
     const dex = getOptionalString(r.dex);
     const symbol = getOptionalString(r.symbol);
     const mcap = getOptionalNumber(r.mcap);
-    const buyVolumeUsd = getOptionalNumber(r.buy_volume_usd);
-    const buyCount = getOptionalNumber(r.buy_count);
     const holderCount = getOptionalNumber(r.holder_count);
-    const score = getOptionalNumber(r.score);
-    const sourceUpdatedAt = getOptionalString(r.updated_at);
 
     return {
-      snapshot_at: snapshotAt,
-      view_name: SUPABASE_LEADERBOARD_VIEW,
-      rank: idx + 1,
       contract_address: contractAddress,
       dex,
       symbol,
       mcap,
-      buy_volume_usd: buyVolumeUsd,
-      buy_count: buyCount == null ? null : Math.floor(buyCount),
       holder_count: holderCount == null ? null : Math.floor(holderCount),
-      score,
-      source_updated_at: sourceUpdatedAt,
-      payload: r,
+      updated_at: nowIso,
     };
   });
 
@@ -249,17 +238,24 @@ const takeLeaderboardSnapshot = async ({ sb }) => {
       const current = existingMap.get(addr) ?? 0;
       const next = Math.max(0, Math.floor(current)) + 1;
       toUpdate.push({
-        ...row,
+        contract_address: addr,
+        dex: row.dex ?? null,
+        symbol: row.symbol ?? null,
+        mcap: row.mcap ?? null,
+        holder_count: row.holder_count ?? null,
+        updated_at: nowIso,
         seen_count: next,
-        last_seen_at: nowIso,
       });
       continue;
     }
     toInsert.push({
-      ...row,
+      contract_address: addr,
+      dex: row.dex ?? null,
+      symbol: row.symbol ?? null,
+      mcap: row.mcap ?? null,
+      holder_count: row.holder_count ?? null,
+      updated_at: nowIso,
       seen_count: 1,
-      first_seen_at: nowIso,
-      last_seen_at: nowIso,
     });
   }
 
@@ -279,19 +275,11 @@ const takeLeaderboardSnapshot = async ({ sb }) => {
     const updateResult = await sb
       .from(SUPABASE_LEADERBOARD_SNAPSHOT_TABLE)
       .update({
-        snapshot_at: row.snapshot_at,
-        view_name: row.view_name,
-        rank: row.rank,
         dex: row.dex,
         symbol: row.symbol,
         mcap: row.mcap,
-        buy_volume_usd: row.buy_volume_usd,
-        buy_count: row.buy_count,
         holder_count: row.holder_count,
-        score: row.score,
-        source_updated_at: row.source_updated_at,
-        payload: row.payload,
-        last_seen_at: row.last_seen_at,
+        updated_at: row.updated_at,
         seen_count: row.seen_count,
       })
       .eq("contract_address", row.contract_address);
@@ -923,34 +911,12 @@ const startWebServer = () => {
         const limitRaw = getOptionalNumber(url.searchParams.get("limit")) ?? 30;
         const limit = Math.min(250, Math.max(1, Math.floor(limitRaw)));
 
-        const snapshotAtParam = getOptionalString(url.searchParams.get("snapshot_at"));
-        let snapshotAt = snapshotAtParam;
-        if (!snapshotAt) {
-          const latest = await sb
-            .from(SUPABASE_LEADERBOARD_SNAPSHOT_TABLE)
-            .select("snapshot_at")
-            .order("snapshot_at", { ascending: false })
-            .limit(1);
-
-          if (latest.error) {
-            sendJson(res, 500, { ok: false, error: "Failed to load snapshots" });
-            return;
-          }
-          snapshotAt = getOptionalString(latest.data?.[0]?.snapshot_at);
-        }
-
-        if (!snapshotAt) {
-          sendJson(res, 200, { ok: true, snapshotAt: null, rows: [] });
-          return;
-        }
-
         let query = sb
           .from(SUPABASE_LEADERBOARD_SNAPSHOT_TABLE)
-          .select(
-            "snapshot_at,view_name,rank,contract_address,dex,symbol,mcap,buy_volume_usd,buy_count,holder_count,score,source_updated_at",
-          )
-          .eq("snapshot_at", snapshotAt)
-          .order("rank", { ascending: true })
+          .select("contract_address,dex,symbol,mcap,holder_count,seen_count,updated_at")
+          .order("seen_count", { ascending: false })
+          .order("holder_count", { ascending: false })
+          .order("updated_at", { ascending: false })
           .limit(limit);
 
         if (minHolders > 0) query = query.gte("holder_count", Math.floor(minHolders));
@@ -961,7 +927,7 @@ const startWebServer = () => {
           return;
         }
 
-        sendJson(res, 200, { ok: true, snapshotAt, rows: data ?? [] });
+        sendJson(res, 200, { ok: true, rows: data ?? [] });
         return;
       }
 
