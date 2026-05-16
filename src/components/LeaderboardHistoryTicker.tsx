@@ -121,7 +121,6 @@ export default function LeaderboardHistoryTicker() {
     const label = formatSymbol(row.symbol, contract);
     const mcap = row.mcap == null ? null : Number(row.mcap);
     const holders = row.holder_count == null ? null : Number(row.holder_count);
-    const seen = row.seen_count == null ? null : Number(row.seen_count);
 
     return (
       <div
@@ -135,7 +134,6 @@ export default function LeaderboardHistoryTicker() {
         <span className="text-xs text-gray-400 tabular-nums">
           Holders {holders == null ? "—" : formatCompact(holders)}
         </span>
-        <span className="text-xs text-gray-500 tabular-nums">Seen {seen == null ? "—" : seen}</span>
       </div>
     );
   };
@@ -148,9 +146,6 @@ export default function LeaderboardHistoryTicker() {
       <div className="sb-ticker__track flex items-center gap-3 py-2">
         <div className="flex items-center gap-3 pr-3">
           {items.map((row, idx) => renderItem(row, idx, "a"))}
-        </div>
-        <div className="flex items-center gap-3 pr-3" aria-hidden="true">
-          {items.map((row, idx) => renderItem(row, idx, "b"))}
         </div>
       </div>
     </div>
