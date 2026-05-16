@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase, isSupabaseConfigured } from "@/lib/supabase";
 
 type HistoryRow = {
@@ -78,6 +78,8 @@ export default function LeaderboardHistoryTicker() {
   const [rows, setRows] = useState<HistoryRow[]>([]);
   const [hasLoadedOnce, setHasLoadedOnce] = useState(false);
   const [imagesByAddress, setImagesByAddress] = useState<Record<string, string>>({});
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const pausedRef = useRef(false);
 
   const url = useMemo(() => {
     const params = new URLSearchParams();
@@ -195,7 +197,59 @@ export default function LeaderboardHistoryTicker() {
     );
   }
 
-  const renderItem = (row: HistoryRow, idx: number, suffix: string) => {
+  useEffect(() => {
+    const prefersReduced = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ?? false;
+    if (prefersReduced) return;
+
+    const track = trackRef.current;
+    if (!track) return;
+
+    let raf = 0;
+    let lastTs = 0;
+    let x = 0;
+    const speedPxPerSec = 40;
+
+    const getGapPx = () => {
+      const style = window.getComputedStyle(track);
+      const gap = style.columnGap || style.gap || "0px";
+      const n = Number.parseFloat(gap);
+      return Number.isFinite(n) ? n : 0;
+    };
+
+    let gapPx = getGapPx();
+
+    const tick = (ts: number) => {
+      if (lastTs === 0) lastTs = ts;
+      const dt = Math.min(64, ts - lastTs);
+      lastTs = ts;
+
+      if (!pausedRef.current) {
+        gapPx = gapPx || getGapPx();
+        x -= (speedPxPerSec * dt) / 1000;
+
+        let first = track.firstElementChild as HTMLElement | null;
+        while (first) {
+          const firstWidth = first.getBoundingClientRect().width;
+          if (!Number.isFinite(firstWidth) || firstWidth <= 0) break;
+          if (-x < firstWidth + gapPx) break;
+          x += firstWidth + gapPx;
+          track.appendChild(first);
+          first = track.firstElementChild as HTMLElement | null;
+        }
+
+        track.style.transform = `translate3d(${x}px, 0, 0)`;
+      }
+
+      raf = window.requestAnimationFrame(tick);
+    };
+
+    raf = window.requestAnimationFrame(tick);
+    return () => {
+      window.cancelAnimationFrame(raf);
+    };
+  }, [items.length]);
+
+  const renderItem = (row: HistoryRow) => {
     const contract = row.contract_address.trim();
     const label = formatSymbol(row.symbol, contract);
     const mcap = row.mcap == null ? null : Number(row.mcap);
@@ -204,7 +258,7 @@ export default function LeaderboardHistoryTicker() {
 
     return (
       <div
-        key={`${suffix}:${contract}:${idx}`}
+        key={contract}
         className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/10 bg-black/40 backdrop-blur-md"
       >
         {imageUrl ? (
@@ -229,18 +283,34 @@ export default function LeaderboardHistoryTicker() {
     );
   };
 
+  const renderSeparator = (key: string) => (
+    <span
+      key={key}
+      className="px-1 text-white/25 select-none"
+      aria-hidden="true"
+    >
+      ·
+    </span>
+  );
+
   return (
-    <div className="sb-ticker relative glass-card border-white/10">
+    <div
+      className="sb-ticker relative glass-card border-white/10"
+      onMouseEnter={() => {
+        pausedRef.current = true;
+      }}
+      onMouseLeave={() => {
+        pausedRef.current = false;
+      }}
+    >
       <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-black via-black/80 to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-black via-black/80 to-transparent" />
 
-      <div className="sb-ticker__track flex items-center gap-3 py-2">
-        <div className="flex items-center gap-3 pr-3">
-          {items.map((row, idx) => renderItem(row, idx, "a"))}
-        </div>
-        <div className="flex items-center gap-3 pr-3" aria-hidden="true">
-          {items.map((row, idx) => renderItem(row, idx, "b"))}
-        </div>
+      <div ref={trackRef} className="sb-ticker__track flex items-center gap-3 py-2">
+        {items.flatMap((row, idx) => [
+          renderItem(row),
+          idx === items.length - 1 ? null : renderSeparator(`sep:${row.contract_address}`),
+        ])}
       </div>
     </div>
   );

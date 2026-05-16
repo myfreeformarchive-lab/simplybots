@@ -49,32 +49,18 @@
     border-color: rgba(20, 241, 149, 0.5);
   }
 
-  @keyframes sb-ticker-scroll {
-    0% {
-      transform: translate3d(0, 0, 0);
-    }
-    100% {
-      transform: translate3d(-50%, 0, 0);
-    }
-  }
-
   .sb-ticker {
     overflow: hidden;
   }
 
   .sb-ticker__track {
     width: max-content;
-    animation: sb-ticker-scroll 35s linear infinite;
     will-change: transform;
-  }
-
-  .sb-ticker:hover .sb-ticker__track {
-    animation-play-state: paused;
+    transform: translate3d(0, 0, 0);
   }
 
   @media (prefers-reduced-motion: reduce) {
     .sb-ticker__track {
-      animation: none;
       transform: none;
     }
   }
