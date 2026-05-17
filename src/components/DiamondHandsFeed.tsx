@@ -310,9 +310,12 @@ export default function DiamondHandsFeed() {
                   key={`${item.txSig ?? "na"}-${globalRank}`}
                   className="rounded-xl border border-white/5 bg-white/5 px-2 py-2 min-h-[56px] flex flex-col justify-between"
                 >
-                  <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-start gap-x-2">
+                  <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-start gap-x-2 gap-y-1">
                     <span className="text-sm text-gray-400 tabular-nums text-left">
                       #{globalRank}
+                    </span>
+                    <span className="text-sm font-bold text-banana tabular-nums justify-self-end">
+                      {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
                     </span>
                     <div className="min-w-0">
                       <div className="flex items-center gap-1">
@@ -331,13 +334,10 @@ export default function DiamondHandsFeed() {
                           </a>
                         ) : null}
                       </div>
-                      <div className="mt-0.5 min-w-0 font-bold text-white truncate">
-                        {item.symbol ?? "—"}
-                      </div>
                     </div>
-                    <span className="text-sm font-bold text-banana tabular-nums justify-self-end">
-                      {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
-                    </span>
+                    <div className="min-w-0 col-span-2 font-bold text-white truncate">
+                      {item.symbol ?? "—"}
+                    </div>
                   </div>
                   <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-400">
                     <span className="tabular-nums">

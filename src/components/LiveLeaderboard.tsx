@@ -544,60 +544,58 @@ export default function LiveLeaderboard() {
                 key={`${row.contractAddress ?? "na"}-${row.symbol ?? globalRank}`}
                 className="rounded-xl border border-white/5 bg-white/5 px-3 py-2"
               >
-                <div className="grid grid-cols-[3rem_minmax(0,1fr)_auto] items-start gap-x-3">
+                <div className="grid grid-cols-[3rem_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1">
                   <span className="text-sm text-gray-400 tabular-nums text-left">
                     #{globalRank}
                   </span>
-                  <div className="min-w-0">
+                  <span className="text-sm font-bold text-banana tabular-nums justify-self-end">
+                    {row.score == null ? "—" : formatScore(row.score)}
+                  </span>
+                  <div className="min-w-0 col-span-2">
                     {tokenUrl ? (
                       <a
                         href={tokenUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="block min-w-0"
+                        className="min-w-0 flex items-center gap-2 font-bold text-white hover:text-banana transition-colors"
                         title={row.contractAddress ?? undefined}
                       >
-                        <div className="flex items-center gap-2">
+                        <span className="flex items-center gap-1 min-w-0">
                           {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
-                          {dexLabel ? (
-                            <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
-                              {dexLabel}
-                            </span>
-                          ) : null}
-                          <span className="flex items-center gap-2 shrink-0">
-                            <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
-                            <AlertTriangle
-                              className={`w-5 h-5 shrink-0 ${showWarning ? "text-red-400" : "opacity-0"}`}
-                            />
+                          <span className="truncate">{row.symbol ?? "—"}</span>
+                        </span>
+                        {dexLabel ? (
+                          <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
+                            {dexLabel}
                           </span>
-                        </div>
-                        <div className="mt-0.5 font-bold text-white hover:text-banana transition-colors truncate">
-                          {row.symbol ?? "—"}
-                        </div>
+                        ) : null}
+                        <span className="flex items-center gap-2 shrink-0">
+                          <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
+                          <AlertTriangle
+                            className={`w-5 h-5 shrink-0 ${showWarning ? "text-red-400" : "opacity-0"}`}
+                          />
+                        </span>
                       </a>
                     ) : (
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
+                      <div className="min-w-0 flex items-center gap-2 font-bold text-white">
+                        <span className="flex items-center gap-1 min-w-0">
                           {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
-                          {dexLabel ? (
-                            <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
-                              {dexLabel}
-                            </span>
-                          ) : null}
-                          <span className="flex items-center gap-2 shrink-0">
-                            <ExternalLink className="w-4 h-4 text-white/50 shrink-0 opacity-0" />
-                            <AlertTriangle
-                              className={`w-5 h-5 shrink-0 ${showWarning ? "text-red-400" : "opacity-0"}`}
-                            />
+                          <span className="truncate">{row.symbol ?? "—"}</span>
+                        </span>
+                        {dexLabel ? (
+                          <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
+                            {dexLabel}
                           </span>
-                        </div>
-                        <div className="mt-0.5 font-bold text-white truncate">{row.symbol ?? "—"}</div>
+                        ) : null}
+                        <span className="flex items-center gap-2 shrink-0">
+                          <ExternalLink className="w-4 h-4 text-white/50 shrink-0 opacity-0" />
+                          <AlertTriangle
+                            className={`w-5 h-5 shrink-0 ${showWarning ? "text-red-400" : "opacity-0"}`}
+                          />
+                        </span>
                       </div>
                     )}
                   </div>
-                  <span className="text-sm font-bold text-banana tabular-nums justify-self-end">
-                    {row.score == null ? "—" : formatScore(row.score)}
-                  </span>
                 </div>
                 <div className="mt-1 grid grid-cols-1 sm:grid-cols-4 gap-x-3 gap-y-1 text-xs text-gray-400">
                   <span className="tabular-nums">
