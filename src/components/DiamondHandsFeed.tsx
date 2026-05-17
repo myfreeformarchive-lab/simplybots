@@ -315,10 +315,10 @@ export default function DiamondHandsFeed() {
                       #{globalRank}
                     </span>
                     <div className="min-w-0">
-                      <div className="min-w-0 flex items-center gap-1">
-                        <span className="min-w-0 flex-1 font-bold text-white truncate">
-                          {item.symbol ?? "—"}
-                        </span>
+                      <div className="min-w-0 inline-flex items-center gap-1 font-bold text-white truncate">
+                        <span className="truncate">{item.symbol ?? "—"}</span>
+                      </div>
+                      <div className="mt-0.5 flex items-center gap-1">
                         {globalRank === 1 && <span className="text-sm shrink-0">💎</span>}
                         {badge && <span className="text-sm shrink-0">{badge}</span>}
                         {item.buyer && buildBuyerUrl(item.buyer) ? (
