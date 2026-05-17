@@ -45,6 +45,14 @@ type TokenPair = {
   info?: { imageUrl?: string };
 };
 
+type TokenProfile = {
+  url?: string;
+  chainId?: string;
+  tokenAddress?: string;
+  icon?: string | null;
+  header?: string | null;
+};
+
 const getNumber = (value: unknown) => {
   if (typeof value === "number") return value;
   if (typeof value === "string") {
@@ -118,6 +126,13 @@ const fetchTokenPairs = async (tokenAddresses: string[]) => {
   const record = json as { pairs?: unknown };
   if (!record || typeof record !== "object" || !Array.isArray(record.pairs)) return [];
   return record.pairs as TokenPair[];
+};
+
+const fetchTokenProfiles = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const json = (await res.json()) as unknown;
+  return Array.isArray(json) ? (json as TokenProfile[]) : [];
 };
 
 const extractFirstUrl = (value: string) => {
@@ -429,6 +444,9 @@ export default function ShoutoutsFeed() {
   const [bigBuyItems, setBigBuyItems] = useState<BigBuyShoutout[]>([]);
   const [boostItems, setBoostItems] = useState<BoostShoutout[]>([]);
   const [tokenImagesByAddress, setTokenImagesByAddress] = useState<Record<string, string>>({});
+  const [tokenBannersByAddress, setTokenBannersByAddress] = useState<Record<string, string | null>>(
+    {},
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFetchAt, setLastFetchAt] = useState<number | null>(null);
@@ -586,6 +604,61 @@ export default function ShoutoutsFeed() {
       cancelled = true;
     };
   }, [activeTokenAddress, tokenImagesByAddress]);
+
+  useEffect(() => {
+    const addr = activeTokenAddress;
+    if (!addr) return;
+    const key = normalizeAddress(addr);
+    if (Object.prototype.hasOwnProperty.call(tokenBannersByAddress, key)) return;
+
+    let cancelled = false;
+
+    const load = async () => {
+      const endpoints = [
+        "https://api.dexscreener.com/token-profiles/latest/v1",
+        "https://api.dexscreener.com/token-profiles/recent-updates/v1",
+        "https://api.dexscreener.com/token-boosts/latest/v1",
+        "https://api.dexscreener.com/token-boosts/top/v1",
+      ];
+
+      for (const endpoint of endpoints) {
+        const profiles = await fetchTokenProfiles(endpoint);
+        if (cancelled) return;
+
+        const match =
+          profiles.find((p) => {
+            const chain = typeof p.chainId === "string" ? p.chainId.trim().toLowerCase() : "";
+            if (chain !== "solana") return false;
+            const token = typeof p.tokenAddress === "string" ? p.tokenAddress.trim() : "";
+            return token ? normalizeAddress(token) === key : false;
+          }) ?? null;
+
+        if (!match) continue;
+
+        const headerUrl = toHttpImageUrl(match.header ?? null);
+        const iconUrl = toHttpImageUrl(match.icon ?? null);
+
+        setTokenBannersByAddress((prev) =>
+          Object.prototype.hasOwnProperty.call(prev, key) ? prev : { ...prev, [key]: headerUrl },
+        );
+
+        if (iconUrl && !tokenImagesByAddress[key]) {
+          setTokenImagesByAddress((prev) => (prev[key] ? prev : { ...prev, [key]: iconUrl }));
+        }
+
+        return;
+      }
+
+      setTokenBannersByAddress((prev) =>
+        Object.prototype.hasOwnProperty.call(prev, key) ? prev : { ...prev, [key]: null },
+      );
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTokenAddress, tokenBannersByAddress, tokenImagesByAddress]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase || !tableName) return;
@@ -779,15 +852,12 @@ export default function ShoutoutsFeed() {
             </div>
           ) : activeCard.kind === "boost" ? (
             <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 flex flex-col justify-between min-h-[300px]">
-              <div className="mb-6 flex justify-center">
-                <div className="relative h-12 w-12 rounded-full border border-white/10 bg-white/5 overflow-hidden flex items-center justify-center">
-                  <span className="text-xs font-bold text-gray-200">
-                    {activeTokenSymbol ?? "SB"}
-                  </span>
-                  {activeTokenAddress && tokenImagesByAddress[normalizeAddress(activeTokenAddress)] ? (
+              <div className="mb-8">
+                <div className="relative h-24 rounded-xl overflow-hidden border border-white/10 bg-white/5">
+                  {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
                     <img
-                      src={tokenImagesByAddress[normalizeAddress(activeTokenAddress)]}
-                      alt={activeTokenSymbol ?? ""}
+                      src={tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ?? undefined}
+                      alt=""
                       loading="lazy"
                       className="absolute inset-0 h-full w-full object-cover"
                       onError={(e) => {
@@ -795,7 +865,27 @@ export default function ShoutoutsFeed() {
                       }}
                     />
                   ) : null}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+                  <div className="absolute -bottom-6 left-1/2 -translate-x-1/2">
+                    <div className="relative h-14 w-14 rounded-full border border-white/20 bg-black/60 overflow-hidden flex items-center justify-center">
+                      <span className="text-[10px] font-bold text-gray-200">
+                        {activeTokenSymbol ?? "SB"}
+                      </span>
+                      {activeTokenAddress && tokenImagesByAddress[normalizeAddress(activeTokenAddress)] ? (
+                        <img
+                          src={tokenImagesByAddress[normalizeAddress(activeTokenAddress)]}
+                          alt={activeTokenSymbol ?? ""}
+                          loading="lazy"
+                          className="absolute inset-0 h-full w-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.opacity = "0";
+                          }}
+                        />
+                      ) : null}
+                    </div>
+                  </div>
                 </div>
+                <div className="h-6" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-start justify-between gap-3">
@@ -886,15 +976,12 @@ export default function ShoutoutsFeed() {
               const dexPaid = extractDexPaid(item.messageMarkdown);
               return (
                 <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 flex flex-col justify-between min-h-[300px]">
-                  <div className="mb-6 flex justify-center">
-                    <div className="relative h-12 w-12 rounded-full border border-white/10 bg-white/5 overflow-hidden flex items-center justify-center">
-                      <span className="text-xs font-bold text-gray-200">
-                        {activeTokenSymbol ?? "SB"}
-                      </span>
-                      {activeTokenAddress && tokenImagesByAddress[normalizeAddress(activeTokenAddress)] ? (
+                  <div className="mb-8">
+                    <div className="relative h-24 rounded-xl overflow-hidden border border-white/10 bg-white/5">
+                      {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
                         <img
-                          src={tokenImagesByAddress[normalizeAddress(activeTokenAddress)]}
-                          alt={activeTokenSymbol ?? ""}
+                          src={tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ?? undefined}
+                          alt=""
                           loading="lazy"
                           className="absolute inset-0 h-full w-full object-cover"
                           onError={(e) => {
@@ -902,7 +989,27 @@ export default function ShoutoutsFeed() {
                           }}
                         />
                       ) : null}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+                      <div className="absolute -bottom-6 left-1/2 -translate-x-1/2">
+                        <div className="relative h-14 w-14 rounded-full border border-white/20 bg-black/60 overflow-hidden flex items-center justify-center">
+                          <span className="text-[10px] font-bold text-gray-200">
+                            {activeTokenSymbol ?? "SB"}
+                          </span>
+                          {activeTokenAddress && tokenImagesByAddress[normalizeAddress(activeTokenAddress)] ? (
+                            <img
+                              src={tokenImagesByAddress[normalizeAddress(activeTokenAddress)]}
+                              alt={activeTokenSymbol ?? ""}
+                              loading="lazy"
+                              className="absolute inset-0 h-full w-full object-cover"
+                              onError={(e) => {
+                                e.currentTarget.style.opacity = "0";
+                              }}
+                            />
+                          ) : null}
+                        </div>
+                      </div>
                     </div>
+                    <div className="h-6" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-start justify-between gap-3">
