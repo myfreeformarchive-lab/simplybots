@@ -562,7 +562,9 @@ export default function LiveLeaderboard() {
                       >
                         <span className="flex items-center gap-1 min-w-0">
                           {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
-                          <span className="truncate">{row.symbol ?? "—"}</span>
+                          <span className="truncate">
+                            {row.symbol == null ? "—" : `$${String(row.symbol).replace(/^\$+/, "")}`}
+                          </span>
                         </span>
                         {dexLabel ? (
                           <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
@@ -580,7 +582,9 @@ export default function LiveLeaderboard() {
                       <div className="min-w-0 flex items-center gap-2 font-bold text-white">
                         <span className="flex items-center gap-1 min-w-0">
                           {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
-                          <span className="truncate">{row.symbol ?? "—"}</span>
+                          <span className="truncate">
+                            {row.symbol == null ? "—" : `$${String(row.symbol).replace(/^\$+/, "")}`}
+                          </span>
                         </span>
                         {dexLabel ? (
                           <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">

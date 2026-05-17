@@ -336,7 +336,7 @@ export default function DiamondHandsFeed() {
                       </div>
                     </div>
                     <div className="min-w-0 col-span-2 font-bold text-white truncate">
-                      {item.symbol ?? "—"}
+                      {item.symbol == null ? "—" : `$${String(item.symbol).replace(/^\$+/, "")}`}
                     </div>
                   </div>
                   <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-400">
