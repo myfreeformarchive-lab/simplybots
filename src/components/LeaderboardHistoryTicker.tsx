@@ -18,6 +18,24 @@ type TokenPair = {
 
 const DISPLAY_LOCALE = "en-US";
 
+const buildTokenUrl = (
+  chain: string,
+  contractAddress: string,
+  dex: string | null,
+) => {
+  const safeAddress = contractAddress.trim();
+  if (!safeAddress) return null;
+
+  const safeDex = (dex ?? "").trim().toLowerCase();
+  if (safeDex === "pumpfun" || safeDex === "pumpswap") {
+    return `https://pump.fun/coin/${encodeURIComponent(safeAddress)}`;
+  }
+
+  const safeChain = chain.trim().toLowerCase();
+  if (!safeChain) return null;
+  return `https://dexscreener.com/${encodeURIComponent(safeChain)}/${encodeURIComponent(safeAddress)}`;
+};
+
 const formatCompact = (value: number) => {
   if (!Number.isFinite(value)) return "—";
   return new Intl.NumberFormat(DISPLAY_LOCALE, {
@@ -101,6 +119,10 @@ export default function LeaderboardHistoryTicker() {
   const [imagesByAddress, setImagesByAddress] = useState<Record<string, string>>({});
   const trackRef = useRef<HTMLDivElement | null>(null);
   const pausedRef = useRef(false);
+  const dexscreenerChain = useMemo(
+    () => import.meta.env.VITE_DEXSCREENER_CHAIN ?? "solana",
+    [],
+  );
 
   const url = useMemo(() => {
     const params = new URLSearchParams();
@@ -287,12 +309,10 @@ export default function LeaderboardHistoryTicker() {
     const mcap = row.mcap == null ? null : Number(row.mcap);
     const holders = row.holder_count == null ? null : Number(row.holder_count);
     const imageUrl = imagesByAddress[normalizeAddress(contract)] ?? null;
+    const tokenUrl = buildTokenUrl(dexscreenerChain, contract, row.dex);
 
-    return (
-      <div
-        key={contract}
-        className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/10 bg-black/40 backdrop-blur-md"
-      >
+    const content = (
+      <div className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/10 bg-black/40 backdrop-blur-md">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -312,6 +332,21 @@ export default function LeaderboardHistoryTicker() {
           Holders {holders == null ? "—" : formatCompact(holders)}
         </span>
       </div>
+    );
+
+    return tokenUrl ? (
+      <a
+        key={contract}
+        href={tokenUrl}
+        target="_blank"
+        rel="noreferrer"
+        className="hover:opacity-90 transition-opacity"
+        title={contract}
+      >
+        {content}
+      </a>
+    ) : (
+      <div key={contract}>{content}</div>
     );
   };
 
