@@ -554,35 +554,51 @@ export default function LiveLeaderboard() {
                         href={tokenUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="min-w-0 inline-flex items-center gap-1 font-bold text-white hover:text-banana transition-colors"
+                        className="block min-w-0"
                         title={row.contractAddress ?? undefined}
                       >
-                        {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
-                        <span className="truncate">{row.symbol ?? "—"}</span>
-                        <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
+                        <div className="flex items-center gap-2">
+                          {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
+                          {dexLabel ? (
+                            <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
+                              {dexLabel}
+                            </span>
+                          ) : null}
+                          <span className="flex items-center gap-2 shrink-0">
+                            <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
+                            <AlertTriangle
+                              className={`w-5 h-5 shrink-0 ${showWarning ? "text-red-400" : "opacity-0"}`}
+                            />
+                          </span>
+                        </div>
+                        <div className="mt-0.5 font-bold text-white hover:text-banana transition-colors truncate">
+                          {row.symbol ?? "—"}
+                        </div>
                       </a>
                     ) : (
-                      <div className="min-w-0 inline-flex items-center gap-1 font-bold text-white">
-                        {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
-                        <span className="truncate">{row.symbol ?? "—"}</span>
-                        <ExternalLink className="w-4 h-4 text-white/50 shrink-0 opacity-0" />
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
+                          {dexLabel ? (
+                            <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
+                              {dexLabel}
+                            </span>
+                          ) : null}
+                          <span className="flex items-center gap-2 shrink-0">
+                            <ExternalLink className="w-4 h-4 text-white/50 shrink-0 opacity-0" />
+                            <AlertTriangle
+                              className={`w-5 h-5 shrink-0 ${showWarning ? "text-red-400" : "opacity-0"}`}
+                            />
+                          </span>
+                        </div>
+                        <div className="mt-0.5 font-bold text-white truncate">{row.symbol ?? "—"}</div>
                       </div>
                     )}
-                    {dexLabel ? (
-                      <div className="mt-0.5 text-[10px] font-bold text-gray-300 truncate">
-                        {dexLabel}
-                      </div>
-                    ) : null}
                   </div>
                   <span className="text-sm font-bold text-banana tabular-nums justify-self-end">
                     {row.score == null ? "—" : formatScore(row.score)}
                   </span>
                 </div>
-                {showWarning ? (
-                  <div className="mt-1 flex justify-end">
-                    <AlertTriangle className="w-5 h-5 text-red-400" />
-                  </div>
-                ) : null}
                 <div className="mt-1 grid grid-cols-1 sm:grid-cols-4 gap-x-3 gap-y-1 text-xs text-gray-400">
                   <span className="tabular-nums">
                     MCAP {row.mcap == null ? "—" : formatCompact(row.mcap)}
