@@ -790,6 +790,11 @@ export default function ShoutoutsFeed() {
               const dexPaid = extractDexPaid(item.messageMarkdown);
               return (
                 <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 flex flex-col justify-between min-h-[300px]">
+                  <div className="mb-3">
+                    <div className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-white/10 bg-white/5">
+                      <Megaphone className="w-4 h-4 text-solana-purple" />
+                    </div>
+                  </div>
                   <div className="min-w-0">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
