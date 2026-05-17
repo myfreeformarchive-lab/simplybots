@@ -340,7 +340,7 @@ export default function LeaderboardHistoryTicker() {
         href={tokenUrl}
         target="_blank"
         rel="noreferrer"
-        className="hover:opacity-90 transition-opacity"
+        className="transition-opacity duration-100 hover:opacity-95"
         title={contract}
       >
         {content}
