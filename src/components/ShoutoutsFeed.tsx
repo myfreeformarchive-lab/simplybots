@@ -885,7 +885,7 @@ export default function ShoutoutsFeed() {
                     </div>
                   </div>
                 </div>
-                <div className="h-6" />
+                <div className="h-0" />
               </div>
               <div className="min-w-0">
                 <div className="flex items-start justify-between gap-3">
@@ -1009,7 +1009,7 @@ export default function ShoutoutsFeed() {
                         </div>
                       </div>
                     </div>
-                    <div className="h-6" />
+                    <div className="h-0" />
                   </div>
                   <div className="min-w-0">
                     <div className="flex items-start justify-between gap-3">
