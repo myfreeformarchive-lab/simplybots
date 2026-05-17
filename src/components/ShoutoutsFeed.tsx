@@ -866,8 +866,8 @@ export default function ShoutoutsFeed() {
                     />
                   ) : null}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-                  <div className="absolute -bottom-4 left-1/2 -translate-x-1/2">
-                    <div className="relative h-14 w-14 rounded-full border border-white/20 bg-black/60 overflow-hidden flex items-center justify-center">
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                    <div className="relative h-14 w-14 rounded-full p-1 border-2 border-white/30 bg-black/80 shadow-lg overflow-hidden flex items-center justify-center">
                       <span className="text-[10px] font-bold text-gray-200">
                         {activeTokenSymbol ?? "SB"}
                       </span>
@@ -990,8 +990,8 @@ export default function ShoutoutsFeed() {
                         />
                       ) : null}
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-                      <div className="absolute -bottom-4 left-1/2 -translate-x-1/2">
-                        <div className="relative h-14 w-14 rounded-full border border-white/20 bg-black/60 overflow-hidden flex items-center justify-center">
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                        <div className="relative h-14 w-14 rounded-full p-1 border-2 border-white/30 bg-black/80 shadow-lg overflow-hidden flex items-center justify-center">
                           <span className="text-[10px] font-bold text-gray-200">
                             {activeTokenSymbol ?? "SB"}
                           </span>
