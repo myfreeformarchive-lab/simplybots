@@ -40,6 +40,11 @@ const DISPLAY_LOCALE = "en-US";
 
 const getString = (value: unknown) => (typeof value === "string" ? value : null);
 
+type TokenPair = {
+  baseToken?: { address?: string };
+  info?: { imageUrl?: string };
+};
+
 const getNumber = (value: unknown) => {
   if (typeof value === "number") return value;
   if (typeof value === "string") {
@@ -87,6 +92,33 @@ const buildTxUrl = (txSig: string) =>
 
 const buildDexscreenerUrl = (contractAddress: string) =>
   `https://dexscreener.com/solana/${encodeURIComponent(contractAddress)}`;
+
+const isHttpUrl = (value: string) => value.startsWith("http://") || value.startsWith("https://");
+
+const toHttpImageUrl = (value: string | null) => {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  if (isHttpUrl(trimmed)) return trimmed;
+  if (trimmed.startsWith("ipfs://")) {
+    const cidPath = trimmed.slice("ipfs://".length).replace(/^ipfs\//, "");
+    return `https://ipfs.io/ipfs/${cidPath}`;
+  }
+  return trimmed;
+};
+
+const normalizeAddress = (value: string) => value.trim().toLowerCase();
+
+const fetchTokenPairs = async (tokenAddresses: string[]) => {
+  if (tokenAddresses.length === 0) return [];
+  const url = `https://api.dexscreener.com/latest/dex/tokens/${tokenAddresses.map(encodeURIComponent).join(",")}`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const json = (await res.json()) as unknown;
+  const record = json as { pairs?: unknown };
+  if (!record || typeof record !== "object" || !Array.isArray(record.pairs)) return [];
+  return record.pairs as TokenPair[];
+};
 
 const extractFirstUrl = (value: string) => {
   const stripped = value.replace(/[`<>]/g, " ").trim();
@@ -396,6 +428,7 @@ type ShoutoutCard =
 export default function ShoutoutsFeed() {
   const [bigBuyItems, setBigBuyItems] = useState<BigBuyShoutout[]>([]);
   const [boostItems, setBoostItems] = useState<BoostShoutout[]>([]);
+  const [tokenImagesByAddress, setTokenImagesByAddress] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFetchAt, setLastFetchAt] = useState<number | null>(null);
@@ -503,6 +536,56 @@ export default function ShoutoutsFeed() {
     const idx = bigBuyItems.length === 0 ? 0 : baseHash % bigBuyItems.length;
     return bigBuyItems[idx] ? { kind: "big_buy", item: bigBuyItems[idx] } : null;
   }, [bigBuyItems, boostItems, nowMs]);
+
+  const activeTokenAddress = useMemo(() => {
+    if (!activeCard) return null;
+    const raw =
+      activeCard.kind === "boost"
+        ? activeCard.item.contractAddress
+        : activeCard.item.tokenAddress;
+    const trimmed = typeof raw === "string" ? raw.trim() : "";
+    return trimmed ? trimmed : null;
+  }, [activeCard]);
+
+  const activeTokenSymbol = useMemo(() => {
+    if (!activeCard) return null;
+    const raw =
+      activeCard.kind === "boost"
+        ? activeCard.item.tokenSymbol ?? activeCard.item.stats?.symbol
+        : activeCard.item.symbol;
+    const trimmed = typeof raw === "string" ? raw.trim() : "";
+    if (!trimmed) return null;
+    const clean = trimmed.replace(/^\$+/, "").toUpperCase();
+    return clean ? `$${clean}` : null;
+  }, [activeCard]);
+
+  useEffect(() => {
+    const addr = activeTokenAddress;
+    if (!addr) return;
+    const key = normalizeAddress(addr);
+    if (tokenImagesByAddress[key]) return;
+
+    let cancelled = false;
+
+    const load = async () => {
+      const pairs = await fetchTokenPairs([addr]);
+      if (cancelled) return;
+
+      for (const p of pairs) {
+        const base = p.baseToken?.address;
+        const img = toHttpImageUrl(p.info?.imageUrl ?? null);
+        if (!base || !img) continue;
+        const k = normalizeAddress(base);
+        setTokenImagesByAddress((prev) => (prev[k] ? prev : { ...prev, [k]: img }));
+        break;
+      }
+    };
+
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeTokenAddress, tokenImagesByAddress]);
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase || !tableName) return;
@@ -696,9 +779,22 @@ export default function ShoutoutsFeed() {
             </div>
           ) : activeCard.kind === "boost" ? (
             <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 flex flex-col justify-between min-h-[300px]">
-              <div className="mb-3">
-                <div className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-white/10 bg-white/5">
-                  <Megaphone className="w-4 h-4 text-solana-purple" />
+              <div className="mb-4 flex justify-center">
+                <div className="relative h-12 w-12 rounded-full border border-white/10 bg-white/5 overflow-hidden flex items-center justify-center">
+                  <span className="text-xs font-bold text-gray-200">
+                    {activeTokenSymbol ?? "SB"}
+                  </span>
+                  {activeTokenAddress && tokenImagesByAddress[normalizeAddress(activeTokenAddress)] ? (
+                    <img
+                      src={tokenImagesByAddress[normalizeAddress(activeTokenAddress)]}
+                      alt={activeTokenSymbol ?? ""}
+                      loading="lazy"
+                      className="absolute inset-0 h-full w-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.opacity = "0";
+                      }}
+                    />
+                  ) : null}
                 </div>
               </div>
               <div className="min-w-0">
@@ -790,9 +886,22 @@ export default function ShoutoutsFeed() {
               const dexPaid = extractDexPaid(item.messageMarkdown);
               return (
                 <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 flex flex-col justify-between min-h-[300px]">
-                  <div className="mb-3">
-                    <div className="inline-flex items-center justify-center h-9 w-9 rounded-full border border-white/10 bg-white/5">
-                      <Megaphone className="w-4 h-4 text-solana-purple" />
+                  <div className="mb-4 flex justify-center">
+                    <div className="relative h-12 w-12 rounded-full border border-white/10 bg-white/5 overflow-hidden flex items-center justify-center">
+                      <span className="text-xs font-bold text-gray-200">
+                        {activeTokenSymbol ?? "SB"}
+                      </span>
+                      {activeTokenAddress && tokenImagesByAddress[normalizeAddress(activeTokenAddress)] ? (
+                        <img
+                          src={tokenImagesByAddress[normalizeAddress(activeTokenAddress)]}
+                          alt={activeTokenSymbol ?? ""}
+                          loading="lazy"
+                          className="absolute inset-0 h-full w-full object-cover"
+                          onError={(e) => {
+                            e.currentTarget.style.opacity = "0";
+                          }}
+                        />
+                      ) : null}
                     </div>
                   </div>
                   <div className="min-w-0">
