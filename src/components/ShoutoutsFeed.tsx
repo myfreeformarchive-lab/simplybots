@@ -779,7 +779,7 @@ export default function ShoutoutsFeed() {
             </div>
           ) : activeCard.kind === "boost" ? (
             <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 flex flex-col justify-between min-h-[300px]">
-              <div className="mb-4 flex justify-center">
+              <div className="mb-6 flex justify-center">
                 <div className="relative h-12 w-12 rounded-full border border-white/10 bg-white/5 overflow-hidden flex items-center justify-center">
                   <span className="text-xs font-bold text-gray-200">
                     {activeTokenSymbol ?? "SB"}
@@ -886,7 +886,7 @@ export default function ShoutoutsFeed() {
               const dexPaid = extractDexPaid(item.messageMarkdown);
               return (
                 <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 flex flex-col justify-between min-h-[300px]">
-                  <div className="mb-4 flex justify-center">
+                  <div className="mb-6 flex justify-center">
                     <div className="relative h-12 w-12 rounded-full border border-white/10 bg-white/5 overflow-hidden flex items-center justify-center">
                       <span className="text-xs font-bold text-gray-200">
                         {activeTokenSymbol ?? "SB"}
@@ -910,7 +910,9 @@ export default function ShoutoutsFeed() {
                         <div className="flex items-center gap-2 min-w-0">
                           <span className="text-sm">{pickEmoji(item.txSig ?? item.createdAt ?? item.symbol)}</span>
                           <span className="font-bold text-white truncate">
-                            {item.symbol ?? "Big buy"}
+                            {item.symbol == null
+                              ? "Big buy"
+                              : `$${String(item.symbol).replace(/^\$+/, "").trim()}`}
                           </span>
                           {item.usdValue != null && (
                             <span className="text-sm font-bold text-banana tabular-nums">
