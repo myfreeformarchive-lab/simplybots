@@ -852,7 +852,7 @@ export default function ShoutoutsFeed() {
             </div>
           ) : activeCard.kind === "boost" ? (
             <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 flex flex-col justify-between min-h-[300px]">
-              <div className="mb-8">
+              <div className="mb-6">
                 <div className="relative h-24 rounded-xl overflow-hidden border border-white/10 bg-white/5">
                   {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
                     <img
@@ -976,7 +976,7 @@ export default function ShoutoutsFeed() {
               const dexPaid = extractDexPaid(item.messageMarkdown);
               return (
                 <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 flex flex-col justify-between min-h-[300px]">
-                  <div className="mb-8">
+                  <div className="mb-6">
                     <div className="relative h-24 rounded-xl overflow-hidden border border-white/10 bg-white/5">
                       {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
                         <img
