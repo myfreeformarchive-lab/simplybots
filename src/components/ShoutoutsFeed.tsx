@@ -843,303 +843,305 @@ export default function ShoutoutsFeed() {
         </div>
       ) : (
         <div className="flex-1 flex flex-col overflow-auto sb-scrollbar-none">
-          {activeCard == null ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
-              <Megaphone className="w-8 h-8 text-solana-purple/30 mb-3" />
-              <p className="text-gray-400 font-medium">
-                No big buy shoutouts yet.
-              </p>
-            </div>
-          ) : activeCard.kind === "boost" ? (
-            <div className="py-6 flex flex-col justify-between min-h-[300px]">
-              <div className="mb-6">
-                <div className="relative h-24 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5">
-                  {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
-                    <img
-                      src={tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ?? undefined}
-                      alt=""
-                      loading="lazy"
-                      className="absolute inset-0 h-full w-full object-cover"
-                      onError={(e) => {
-                        e.currentTarget.style.opacity = "0";
-                      }}
-                    />
-                  ) : null}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                    <div className="relative h-14 w-14 rounded-full p-1 border-2 border-white/30 bg-black/80 shadow-lg overflow-hidden flex items-center justify-center">
-                      <span className="text-[10px] font-bold text-gray-200">
-                        {activeTokenSymbol ?? "SB"}
-                      </span>
-                      {activeTokenAddress && tokenImagesByAddress[normalizeAddress(activeTokenAddress)] ? (
-                        <img
-                          src={tokenImagesByAddress[normalizeAddress(activeTokenAddress)]}
-                          alt={activeTokenSymbol ?? ""}
-                          loading="lazy"
-                          className="absolute inset-0 h-full w-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.opacity = "0";
-                          }}
-                        />
-                      ) : null}
-                    </div>
-                  </div>
-                </div>
-                <div className="h-0" />
+          <div className="min-h-full flex flex-col">
+            {activeCard == null ? (
+              <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
+                <Megaphone className="w-8 h-8 text-solana-purple/30 mb-3" />
+                <p className="text-gray-400 font-medium">
+                  No big buy shoutouts yet.
+                </p>
               </div>
-              <div className="min-w-0">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="text-sm">{pickEmoji(activeCard.item.contractAddress ?? activeCard.item.id)}</span>
-                      <span className="font-bold text-white truncate">
-                        {activeCard.item.tokenSymbol ?? activeCard.item.stats?.symbol ?? "Boost Shoutout"}
-                      </span>
-                    </div>
-                    <div className="mt-2 text-base text-white">
-                      {renderBoostTemplate(
-                        activeCard.item.templateKey,
-                        activeCard.item.tokenSymbol ?? activeCard.item.stats?.symbol ?? "TOKEN",
-                        activeCard.item.stats,
-                      ).headline}
-                    </div>
-                    <div className="mt-2 text-sm text-gray-300 leading-relaxed">
-                      {renderBoostTemplate(
-                        activeCard.item.templateKey,
-                        activeCard.item.tokenSymbol ?? activeCard.item.stats?.symbol ?? "TOKEN",
-                        activeCard.item.stats,
-                      ).body}
-                    </div>
-                    <div className="mt-2 text-xs text-gray-400">
-                      {renderBoostTemplate(
-                        activeCard.item.templateKey,
-                        activeCard.item.tokenSymbol ?? activeCard.item.stats?.symbol ?? "TOKEN",
-                        activeCard.item.stats,
-                      ).footer}
-                    </div>
-                  </div>
-
-                  <div className="shrink-0 flex items-center gap-2">
-                    {activeCard.item.contractAddress ? (
-                      <a
-                        href={buildDexscreenerUrl(activeCard.item.contractAddress)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
-                        title={activeCard.item.contractAddress}
-                      >
-                        <span>Dex</span>
-                        <ExternalLink className="w-3 h-3 text-white/50" />
-                      </a>
+            ) : activeCard.kind === "boost" ? (
+              <div className="py-6 flex flex-col justify-between min-h-[300px]">
+                <div className="mb-6">
+                  <div className="relative h-24 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5">
+                    {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
+                      <img
+                        src={tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ?? undefined}
+                        alt=""
+                        loading="lazy"
+                        className="absolute inset-0 h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.opacity = "0";
+                        }}
+                      />
                     ) : null}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                      <div className="relative h-14 w-14 rounded-full p-1 border-2 border-white/30 bg-black/80 shadow-lg overflow-hidden flex items-center justify-center">
+                        <span className="text-[10px] font-bold text-gray-200">
+                          {activeTokenSymbol ?? "SB"}
+                        </span>
+                        {activeTokenAddress && tokenImagesByAddress[normalizeAddress(activeTokenAddress)] ? (
+                          <img
+                            src={tokenImagesByAddress[normalizeAddress(activeTokenAddress)]}
+                            alt={activeTokenSymbol ?? ""}
+                            loading="lazy"
+                            className="absolute inset-0 h-full w-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.opacity = "0";
+                            }}
+                          />
+                        ) : null}
+                      </div>
+                    </div>
                   </div>
+                  <div className="h-0" />
                 </div>
+                <div className="min-w-0">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="text-sm">{pickEmoji(activeCard.item.contractAddress ?? activeCard.item.id)}</span>
+                        <span className="font-bold text-white truncate">
+                          {activeCard.item.tokenSymbol ?? activeCard.item.stats?.symbol ?? "Boost Shoutout"}
+                        </span>
+                      </div>
+                      <div className="mt-2 text-base text-white">
+                        {renderBoostTemplate(
+                          activeCard.item.templateKey,
+                          activeCard.item.tokenSymbol ?? activeCard.item.stats?.symbol ?? "TOKEN",
+                          activeCard.item.stats,
+                        ).headline}
+                      </div>
+                      <div className="mt-2 text-sm text-gray-300 leading-relaxed">
+                        {renderBoostTemplate(
+                          activeCard.item.templateKey,
+                          activeCard.item.tokenSymbol ?? activeCard.item.stats?.symbol ?? "TOKEN",
+                          activeCard.item.stats,
+                        ).body}
+                      </div>
+                      <div className="mt-2 text-xs text-gray-400">
+                        {renderBoostTemplate(
+                          activeCard.item.templateKey,
+                          activeCard.item.tokenSymbol ?? activeCard.item.stats?.symbol ?? "TOKEN",
+                          activeCard.item.stats,
+                        ).footer}
+                      </div>
+                    </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-px rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5 text-xs text-gray-300">
-                  <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
-                    <div className="text-[10px] text-gray-500">MCAP</div>
-                    <div className="font-bold text-white tabular-nums">
-                      {activeCard.item.stats?.mcap == null ? "—" : `$${formatUsdCompact(activeCard.item.stats.mcap)}`}
-                    </div>
-                  </div>
-                  <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
-                    <div className="text-[10px] text-gray-500">1h Vol</div>
-                    <div className="font-bold text-white tabular-nums">
-                      {activeCard.item.stats?.buyVolumeUsd == null
-                        ? "—"
-                        : `$${formatUsdCompact(activeCard.item.stats.buyVolumeUsd)}`}
-                    </div>
-                  </div>
-                  <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
-                    <div className="text-[10px] text-gray-500">1h Buys</div>
-                    <div className="font-bold text-white tabular-nums">
-                      {activeCard.item.stats?.buyCount == null
-                        ? "—"
-                        : new Intl.NumberFormat(DISPLAY_LOCALE).format(activeCard.item.stats.buyCount)}
-                    </div>
-                  </div>
-                  <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
-                    <div className="text-[10px] text-gray-500">Score</div>
-                    <div className="font-bold text-white tabular-nums">
-                      {activeCard.item.stats?.score == null ? "—" : formatScore(activeCard.item.stats.score)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-4" />
-            </div>
-          ) : (
-            (() => {
-              const item = activeCard.item;
-              const socials = extractSocialLinks(item.messageMarkdown);
-              const dexPaid = extractDexPaid(item.messageMarkdown);
-              return (
-                <div className="py-6 flex flex-col justify-between min-h-[300px]">
-                  <div className="mb-6">
-                    <div className="relative h-24 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5">
-                      {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
-                        <img
-                          src={tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ?? undefined}
-                          alt=""
-                          loading="lazy"
-                          className="absolute inset-0 h-full w-full object-cover"
-                          onError={(e) => {
-                            e.currentTarget.style.opacity = "0";
-                          }}
-                        />
+                    <div className="shrink-0 flex items-center gap-2">
+                      {activeCard.item.contractAddress ? (
+                        <a
+                          href={buildDexscreenerUrl(activeCard.item.contractAddress)}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
+                          title={activeCard.item.contractAddress}
+                        >
+                          <span>Dex</span>
+                          <ExternalLink className="w-3 h-3 text-white/50" />
+                        </a>
                       ) : null}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                        <div className="relative h-14 w-14 rounded-full p-1 border-2 border-white/30 bg-black/80 shadow-lg overflow-hidden flex items-center justify-center">
-                          <span className="text-[10px] font-bold text-gray-200">
-                            {activeTokenSymbol ?? "SB"}
-                          </span>
-                          {activeTokenAddress && tokenImagesByAddress[normalizeAddress(activeTokenAddress)] ? (
-                            <img
-                              src={tokenImagesByAddress[normalizeAddress(activeTokenAddress)]}
-                              alt={activeTokenSymbol ?? ""}
-                              loading="lazy"
-                              className="absolute inset-0 h-full w-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.style.opacity = "0";
-                              }}
-                            />
+                    </div>
+                  </div>
+
+                  <div className="mt-4 grid grid-cols-2 gap-px rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5 text-xs text-gray-300">
+                    <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
+                      <div className="text-[10px] text-gray-500">MCAP</div>
+                      <div className="font-bold text-white tabular-nums">
+                        {activeCard.item.stats?.mcap == null ? "—" : `$${formatUsdCompact(activeCard.item.stats.mcap)}`}
+                      </div>
+                    </div>
+                    <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
+                      <div className="text-[10px] text-gray-500">1h Vol</div>
+                      <div className="font-bold text-white tabular-nums">
+                        {activeCard.item.stats?.buyVolumeUsd == null
+                          ? "—"
+                          : `$${formatUsdCompact(activeCard.item.stats.buyVolumeUsd)}`}
+                      </div>
+                    </div>
+                    <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
+                      <div className="text-[10px] text-gray-500">1h Buys</div>
+                      <div className="font-bold text-white tabular-nums">
+                        {activeCard.item.stats?.buyCount == null
+                          ? "—"
+                          : new Intl.NumberFormat(DISPLAY_LOCALE).format(activeCard.item.stats.buyCount)}
+                      </div>
+                    </div>
+                    <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
+                      <div className="text-[10px] text-gray-500">Score</div>
+                      <div className="font-bold text-white tabular-nums">
+                        {activeCard.item.stats?.score == null ? "—" : formatScore(activeCard.item.stats.score)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-4" />
+              </div>
+            ) : (
+              (() => {
+                const item = activeCard.item;
+                const socials = extractSocialLinks(item.messageMarkdown);
+                const dexPaid = extractDexPaid(item.messageMarkdown);
+                return (
+                  <div className="py-6 flex flex-col justify-between min-h-[300px]">
+                    <div className="mb-6">
+                      <div className="relative h-24 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5">
+                        {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
+                          <img
+                            src={tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ?? undefined}
+                            alt=""
+                            loading="lazy"
+                            className="absolute inset-0 h-full w-full object-cover"
+                            onError={(e) => {
+                              e.currentTarget.style.opacity = "0";
+                            }}
+                          />
+                        ) : null}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10" />
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+                          <div className="relative h-14 w-14 rounded-full p-1 border-2 border-white/30 bg-black/80 shadow-lg overflow-hidden flex items-center justify-center">
+                            <span className="text-[10px] font-bold text-gray-200">
+                              {activeTokenSymbol ?? "SB"}
+                            </span>
+                            {activeTokenAddress && tokenImagesByAddress[normalizeAddress(activeTokenAddress)] ? (
+                              <img
+                                src={tokenImagesByAddress[normalizeAddress(activeTokenAddress)]}
+                                alt={activeTokenSymbol ?? ""}
+                                loading="lazy"
+                                className="absolute inset-0 h-full w-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.style.opacity = "0";
+                                }}
+                              />
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="h-0" />
+                    </div>
+                    <div className="min-w-0">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-sm">{pickEmoji(item.txSig ?? item.createdAt ?? item.symbol)}</span>
+                            <span className="font-bold text-white truncate">
+                              {item.symbol == null
+                                ? "Big buy"
+                                : `$${String(item.symbol).replace(/^\$+/, "").trim()}`}
+                            </span>
+                            {item.usdValue != null && (
+                              <span className="text-sm font-bold text-banana tabular-nums">
+                                {formatUsd(item.usdValue)}
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-1 text-xs text-gray-400 truncate">
+                            {item.dex ? (formatDexLabel(item.dex) ?? item.dex) : "—"}
+                            {item.solSpent != null ? ` · ${formatSol(item.solSpent)} SOL` : ""}
+                            {item.tokensReceived != null ? ` · Got ${formatCompact(item.tokensReceived)}` : ""}
+                          </div>
+                        </div>
+
+                        <div className="shrink-0 flex items-center gap-2">
+                          {item.chartUrl ? (
+                            <a
+                              href={extractFirstUrl(item.chartUrl) ?? item.chartUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
+                              title={item.chartUrl}
+                            >
+                              <span>Chart</span>
+                              <ExternalLink className="w-3 h-3 text-white/50" />
+                            </a>
+                          ) : null}
+                          {item.txSig ? (
+                            <a
+                              href={buildTxHref(item.txSig) ?? undefined}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
+                              title={item.txSig}
+                            >
+                              <span>Tx</span>
+                              <ExternalLink className="w-3 h-3 text-white/50" />
+                            </a>
                           ) : null}
                         </div>
                       </div>
-                    </div>
-                    <div className="h-0" />
-                  </div>
-                  <div className="min-w-0">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <span className="text-sm">{pickEmoji(item.txSig ?? item.createdAt ?? item.symbol)}</span>
-                          <span className="font-bold text-white truncate">
-                            {item.symbol == null
-                              ? "Big buy"
-                              : `$${String(item.symbol).replace(/^\$+/, "").trim()}`}
-                          </span>
-                          {item.usdValue != null && (
-                            <span className="text-sm font-bold text-banana tabular-nums">
-                              {formatUsd(item.usdValue)}
-                            </span>
-                          )}
+
+                      <div className="mt-4 grid grid-cols-2 gap-px rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5 text-xs text-gray-300">
+                        <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
+                          <div className="text-[10px] text-gray-500">SOL</div>
+                          <div className="font-bold text-white tabular-nums">
+                            {item.solSpent == null ? "—" : formatSol(item.solSpent)}
+                          </div>
                         </div>
-                        <div className="mt-1 text-xs text-gray-400 truncate">
-                          {item.dex ? (formatDexLabel(item.dex) ?? item.dex) : "—"}
-                          {item.solSpent != null ? ` · ${formatSol(item.solSpent)} SOL` : ""}
-                          {item.tokensReceived != null ? ` · Got ${formatCompact(item.tokensReceived)}` : ""}
+                        <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
+                          <div className="text-[10px] text-gray-500">USD</div>
+                          <div className="font-bold text-white tabular-nums">
+                            {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
+                          </div>
+                        </div>
+                        <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
+                          <div className="text-[10px] text-gray-500">Got</div>
+                          <div className="font-bold text-white tabular-nums">
+                            {item.tokensReceived == null ? "—" : formatCompact(item.tokensReceived)}
+                          </div>
+                        </div>
+                        <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
+                          <div className="text-[10px] text-gray-500">Token</div>
+                          <div className="font-bold text-white tabular-nums truncate">
+                            {item.tokenAddress == null ? "—" : shorten(item.tokenAddress, 6, 4)}
+                          </div>
                         </div>
                       </div>
 
-                      <div className="shrink-0 flex items-center gap-2">
-                        {item.chartUrl ? (
-                          <a
-                            href={extractFirstUrl(item.chartUrl) ?? item.chartUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
-                            title={item.chartUrl}
-                          >
-                            <span>Chart</span>
-                            <ExternalLink className="w-3 h-3 text-white/50" />
-                          </a>
-                        ) : null}
-                        {item.txSig ? (
-                          <a
-                            href={buildTxHref(item.txSig) ?? undefined}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="inline-flex items-center gap-1 text-xs text-gray-300 hover:text-white transition-colors"
-                            title={item.txSig}
-                          >
-                            <span>Tx</span>
-                            <ExternalLink className="w-3 h-3 text-white/50" />
-                          </a>
-                        ) : null}
-                      </div>
+                      {socials.length > 0 ? (
+                        <div className="mt-4 rounded-xl bg-white/[0.025] lg:bg-white/5 px-3 py-2">
+                          <div className="text-[10px] text-gray-500 mb-1">Socials</div>
+                          <div className="flex flex-wrap gap-2">
+                            {socials.map((s) => (
+                              <a
+                                key={s.url}
+                                href={s.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 rounded-md bg-white/[0.025] lg:bg-white/5 px-2 py-1 text-xs text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                                title={s.url}
+                              >
+                                <span>{s.label}</span>
+                                <ExternalLink className="w-3 h-3 text-white/50" />
+                              </a>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-px rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5 text-xs text-gray-300">
-                      <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
-                        <div className="text-[10px] text-gray-500">SOL</div>
-                        <div className="font-bold text-white tabular-nums">
-                          {item.solSpent == null ? "—" : formatSol(item.solSpent)}
-                        </div>
-                      </div>
-                      <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
-                        <div className="text-[10px] text-gray-500">USD</div>
-                        <div className="font-bold text-white tabular-nums">
-                          {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
-                        </div>
-                      </div>
-                      <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
-                        <div className="text-[10px] text-gray-500">Got</div>
-                        <div className="font-bold text-white tabular-nums">
-                          {item.tokensReceived == null ? "—" : formatCompact(item.tokensReceived)}
-                        </div>
-                      </div>
-                      <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
-                        <div className="text-[10px] text-gray-500">Token</div>
-                        <div className="font-bold text-white tabular-nums truncate">
-                          {item.tokenAddress == null ? "—" : shorten(item.tokenAddress, 6, 4)}
-                        </div>
-                      </div>
+                    <div className="mt-4 flex items-center justify-between gap-3">
+                      {item.buyer ? (
+                        <a
+                          href={buildBuyerUrl(item.buyer) ?? undefined}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs text-gray-400 truncate min-w-0 hover:text-white transition-colors"
+                          title={item.buyer}
+                        >
+                          Buyer · {shorten(item.buyer, 6, 4)}
+                        </a>
+                      ) : (
+                        <span className="text-xs text-gray-500">Buyer · —</span>
+                      )}
+                      {dexPaid == null ? (
+                        <span className="text-xs text-gray-600 tabular-nums">{item.createdAt ?? ""}</span>
+                      ) : dexPaid ? (
+                        <span className="text-xs text-solana-green font-bold">DEX Paid</span>
+                      ) : (
+                        <span className="text-xs text-gray-500 font-bold">DEX Unpaid</span>
+                      )}
                     </div>
-
-                    {socials.length > 0 ? (
-                      <div className="mt-4 rounded-xl bg-white/[0.025] lg:bg-white/5 px-3 py-2">
-                        <div className="text-[10px] text-gray-500 mb-1">Socials</div>
-                        <div className="flex flex-wrap gap-2">
-                          {socials.map((s) => (
-                            <a
-                              key={s.url}
-                              href={s.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1 rounded-md bg-white/[0.025] lg:bg-white/5 px-2 py-1 text-xs text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
-                              title={s.url}
-                            >
-                              <span>{s.label}</span>
-                              <ExternalLink className="w-3 h-3 text-white/50" />
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    ) : null}
                   </div>
+                );
+              })()
+            )}
 
-                  <div className="mt-4 flex items-center justify-between gap-3">
-                    {item.buyer ? (
-                      <a
-                        href={buildBuyerUrl(item.buyer) ?? undefined}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="text-xs text-gray-400 truncate min-w-0 hover:text-white transition-colors"
-                        title={item.buyer}
-                      >
-                        Buyer · {shorten(item.buyer, 6, 4)}
-                      </a>
-                    ) : (
-                      <span className="text-xs text-gray-500">Buyer · —</span>
-                    )}
-                    {dexPaid == null ? (
-                      <span className="text-xs text-gray-600 tabular-nums">{item.createdAt ?? ""}</span>
-                    ) : dexPaid ? (
-                      <span className="text-xs text-solana-green font-bold">DEX Paid</span>
-                    ) : (
-                      <span className="text-xs text-gray-500 font-bold">DEX Unpaid</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })()
-          )}
-
-          <div className="mt-4 text-xs text-gray-500 text-right">
-            {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
+            <div className="mt-4 text-xs text-gray-500 text-right mt-auto">
+              {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
+            </div>
           </div>
         </div>
       )}

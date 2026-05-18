@@ -300,77 +300,79 @@ export default function DiamondHandsFeed() {
         </div>
       ) : (
         <div className="flex-1 overflow-auto sb-scrollbar-none">
-          <div className="divide-y divide-white/10">
-            {currentPageItems.map((item, idx) => {
-              const globalRank = pageIndex * pageSize + idx + 1;
-              const badge = getBadge(item.usdValue);
-              const txUrl = item.txSig ? buildTxUrl(item.txSig) : null;
-              return (
-                <div
-                  key={`${item.txSig ?? "na"}-${globalRank}`}
-                  className="py-4 min-h-[56px] flex flex-col justify-between"
-                >
-                  <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-start gap-x-2 gap-y-1">
-                    <span className="text-sm text-gray-400 tabular-nums text-left">
-                      #{globalRank}
-                    </span>
-                    <span className="text-sm font-bold text-banana tabular-nums justify-self-end">
-                      {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1">
-                        {globalRank === 1 && <span className="text-sm shrink-0">💎</span>}
-                        {badge && <span className="text-sm shrink-0">{badge}</span>}
-                        {item.buyer && buildBuyerUrl(item.buyer) ? (
-                          <a
-                            href={buildBuyerUrl(item.buyer) ?? undefined}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="shrink-0 text-sm text-gray-400 hover:text-white transition-colors"
-                            title={item.buyer}
-                            aria-label="View buyer wallet"
-                          >
-                            👛
-                          </a>
-                        ) : null}
+          <div className="min-h-full flex flex-col">
+            <div className="divide-y divide-white/10">
+              {currentPageItems.map((item, idx) => {
+                const globalRank = pageIndex * pageSize + idx + 1;
+                const badge = getBadge(item.usdValue);
+                const txUrl = item.txSig ? buildTxUrl(item.txSig) : null;
+                return (
+                  <div
+                    key={`${item.txSig ?? "na"}-${globalRank}`}
+                    className="py-4 min-h-[56px] flex flex-col justify-between"
+                  >
+                    <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-start gap-x-2 gap-y-1">
+                      <span className="text-sm text-gray-400 tabular-nums text-left">
+                        #{globalRank}
+                      </span>
+                      <span className="text-sm font-bold text-banana tabular-nums justify-self-end">
+                        {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-1">
+                          {globalRank === 1 && <span className="text-sm shrink-0">💎</span>}
+                          {badge && <span className="text-sm shrink-0">{badge}</span>}
+                          {item.buyer && buildBuyerUrl(item.buyer) ? (
+                            <a
+                              href={buildBuyerUrl(item.buyer) ?? undefined}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="shrink-0 text-sm text-gray-400 hover:text-white transition-colors"
+                              title={item.buyer}
+                              aria-label="View buyer wallet"
+                            >
+                              👛
+                            </a>
+                          ) : null}
+                        </div>
+                      </div>
+                      <div className="min-w-0 col-span-2 font-bold text-white truncate">
+                        {item.symbol == null ? "—" : `$${String(item.symbol).replace(/^\$+/, "")}`}
                       </div>
                     </div>
-                    <div className="min-w-0 col-span-2 font-bold text-white truncate">
-                      {item.symbol == null ? "—" : `$${String(item.symbol).replace(/^\$+/, "")}`}
+                    <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-400">
+                      <span className="tabular-nums">
+                        SOL {item.solSpent == null ? "—" : formatSol(item.solSpent)}
+                      </span>
+                      {txUrl ? (
+                        <a
+                          href={txUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 hover:text-white transition-colors sm:justify-self-end"
+                          title={item.txSig ?? undefined}
+                        >
+                          <span className="tabular-nums">
+                            {item.txSig ? shorten(item.txSig, 6, 6) : "Tx"}
+                          </span>
+                          <ExternalLink className="w-3 h-3 text-white/50 shrink-0" />
+                        </a>
+                      ) : (
+                        <span className="sm:justify-self-end">—</span>
+                      )}
                     </div>
                   </div>
-                  <div className="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1 text-xs text-gray-400">
-                    <span className="tabular-nums">
-                      SOL {item.solSpent == null ? "—" : formatSol(item.solSpent)}
-                    </span>
-                    {txUrl ? (
-                      <a
-                        href={txUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 hover:text-white transition-colors sm:justify-self-end"
-                        title={item.txSig ?? undefined}
-                      >
-                        <span className="tabular-nums">
-                          {item.txSig ? shorten(item.txSig, 6, 6) : "Tx"}
-                        </span>
-                        <ExternalLink className="w-3 h-3 text-white/50 shrink-0" />
-                      </a>
-                    ) : (
-                      <span className="sm:justify-self-end">—</span>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            {items.length === 0 && (
-              <p className="text-sm text-gray-400">No data yet.</p>
-            )}
-          </div>
+              {items.length === 0 && (
+                <p className="text-sm text-gray-400">No data yet.</p>
+              )}
+            </div>
 
-          <div className="pt-4 text-xs text-gray-500 text-right">
-            {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
+            <div className="pt-4 text-xs text-gray-500 text-right mt-auto">
+              {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
+            </div>
           </div>
         </div>
       )}

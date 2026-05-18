@@ -525,108 +525,110 @@ export default function LiveLeaderboard() {
         </div>
       ) : (
         <div className="flex-1 overflow-auto sb-scrollbar-none">
-          <div className="divide-y divide-white/10">
-            {currentPageRows.map((row, idx) => {
-              const globalRank = pageIndex * pageSize + idx + 1;
-              const tokenUrl =
-                row.contractAddress == null
-                  ? null
-                  : buildTokenUrl(dexscreenerChain, row.contractAddress, row.dex);
-              const dexLabel = row.dex == null ? null : formatDexLabel(row.dex);
-              const showWarning =
-                row.mcap != null &&
-                row.buyVolumeUsd != null &&
-                Number.isFinite(row.mcap) &&
-                Number.isFinite(row.buyVolumeUsd) &&
-                row.buyVolumeUsd > row.mcap;
-              return (
-              <div
-                key={`${row.contractAddress ?? "na"}-${row.symbol ?? globalRank}`}
-                className="py-4"
-              >
-                <div className="grid grid-cols-[3rem_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1">
-                  <span className="text-sm text-gray-400 tabular-nums text-left">
-                    #{globalRank}
-                  </span>
-                  <span className="text-sm font-bold text-banana tabular-nums justify-self-end">
-                    {row.score == null ? "—" : formatScore(row.score)}
-                  </span>
-                  <div className="min-w-0 col-span-2">
-                    {tokenUrl ? (
-                      <a
-                        href={tokenUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="min-w-0 flex items-center gap-2 font-bold text-white hover:text-banana transition-colors"
-                        title={row.contractAddress ?? undefined}
-                      >
-                        <span className="flex items-center gap-1 min-w-0">
-                          {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
-                          <span className="truncate">
-                            {row.symbol == null ? "—" : `$${String(row.symbol).replace(/^\$+/, "")}`}
+          <div className="min-h-full flex flex-col">
+            <div className="divide-y divide-white/10">
+              {currentPageRows.map((row, idx) => {
+                const globalRank = pageIndex * pageSize + idx + 1;
+                const tokenUrl =
+                  row.contractAddress == null
+                    ? null
+                    : buildTokenUrl(dexscreenerChain, row.contractAddress, row.dex);
+                const dexLabel = row.dex == null ? null : formatDexLabel(row.dex);
+                const showWarning =
+                  row.mcap != null &&
+                  row.buyVolumeUsd != null &&
+                  Number.isFinite(row.mcap) &&
+                  Number.isFinite(row.buyVolumeUsd) &&
+                  row.buyVolumeUsd > row.mcap;
+                return (
+                <div
+                  key={`${row.contractAddress ?? "na"}-${row.symbol ?? globalRank}`}
+                  className="py-4"
+                >
+                  <div className="grid grid-cols-[3rem_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1">
+                    <span className="text-sm text-gray-400 tabular-nums text-left">
+                      #{globalRank}
+                    </span>
+                    <span className="text-sm font-bold text-banana tabular-nums justify-self-end">
+                      {row.score == null ? "—" : formatScore(row.score)}
+                    </span>
+                    <div className="min-w-0 col-span-2">
+                      {tokenUrl ? (
+                        <a
+                          href={tokenUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="min-w-0 flex items-center gap-2 font-bold text-white hover:text-banana transition-colors"
+                          title={row.contractAddress ?? undefined}
+                        >
+                          <span className="flex items-center gap-1 min-w-0">
+                            {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
+                            <span className="truncate">
+                              {row.symbol == null ? "—" : `$${String(row.symbol).replace(/^\$+/, "")}`}
+                            </span>
                           </span>
-                        </span>
-                        {dexLabel ? (
-                          <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
-                            {dexLabel}
+                          {dexLabel ? (
+                            <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
+                              {dexLabel}
+                            </span>
+                          ) : null}
+                          <span className="flex items-center gap-2 shrink-0">
+                            <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
+                            <AlertTriangle
+                              className={`w-5 h-5 shrink-0 ${showWarning ? "text-red-400" : "opacity-0"}`}
+                            />
                           </span>
-                        ) : null}
-                        <span className="flex items-center gap-2 shrink-0">
-                          <ExternalLink className="w-4 h-4 text-white/50 shrink-0" />
-                          <AlertTriangle
-                            className={`w-5 h-5 shrink-0 ${showWarning ? "text-red-400" : "opacity-0"}`}
-                          />
-                        </span>
-                      </a>
-                    ) : (
-                      <div className="min-w-0 flex items-center gap-2 font-bold text-white">
-                        <span className="flex items-center gap-1 min-w-0">
-                          {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
-                          <span className="truncate">
-                            {row.symbol == null ? "—" : `$${String(row.symbol).replace(/^\$+/, "")}`}
+                        </a>
+                      ) : (
+                        <div className="min-w-0 flex items-center gap-2 font-bold text-white">
+                          <span className="flex items-center gap-1 min-w-0">
+                            {globalRank === 1 ? <span className="shrink-0">🔥</span> : null}
+                            <span className="truncate">
+                              {row.symbol == null ? "—" : `$${String(row.symbol).replace(/^\$+/, "")}`}
+                            </span>
                           </span>
-                        </span>
-                        {dexLabel ? (
-                          <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
-                            {dexLabel}
+                          {dexLabel ? (
+                            <span className="shrink-0 text-[10px] px-2 py-0.5 rounded-full border border-white/10 bg-white/5 text-gray-300 font-bold">
+                              {dexLabel}
+                            </span>
+                          ) : null}
+                          <span className="flex items-center gap-2 shrink-0">
+                            <ExternalLink className="w-4 h-4 text-white/50 shrink-0 opacity-0" />
+                            <AlertTriangle
+                              className={`w-5 h-5 shrink-0 ${showWarning ? "text-red-400" : "opacity-0"}`}
+                            />
                           </span>
-                        ) : null}
-                        <span className="flex items-center gap-2 shrink-0">
-                          <ExternalLink className="w-4 h-4 text-white/50 shrink-0 opacity-0" />
-                          <AlertTriangle
-                            className={`w-5 h-5 shrink-0 ${showWarning ? "text-red-400" : "opacity-0"}`}
-                          />
-                        </span>
-                      </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="mt-1 grid grid-cols-1 sm:grid-cols-4 gap-x-3 gap-y-1 text-xs text-gray-400">
+                    <span className="tabular-nums">
+                      MCAP {row.mcap == null ? "—" : formatCompact(row.mcap)}
+                    </span>
+                    <span className="tabular-nums sm:text-center">
+                      1h Vol {row.buyVolumeUsd == null ? "—" : `$${formatCompact(row.buyVolumeUsd)}`}
+                    </span>
+                    <span className="tabular-nums sm:text-center">
+                      1h Buys {row.buyCount == null ? "—" : formatCompact(row.buyCount)}
+                    </span>
+                    {row.holderCount == null ? null : (
+                      <span className="tabular-nums sm:text-right">
+                        👥 {formatCompact(row.holderCount)}
+                      </span>
                     )}
                   </div>
                 </div>
-                <div className="mt-1 grid grid-cols-1 sm:grid-cols-4 gap-x-3 gap-y-1 text-xs text-gray-400">
-                  <span className="tabular-nums">
-                    MCAP {row.mcap == null ? "—" : formatCompact(row.mcap)}
-                  </span>
-                  <span className="tabular-nums sm:text-center">
-                    1h Vol {row.buyVolumeUsd == null ? "—" : `$${formatCompact(row.buyVolumeUsd)}`}
-                  </span>
-                  <span className="tabular-nums sm:text-center">
-                    1h Buys {row.buyCount == null ? "—" : formatCompact(row.buyCount)}
-                  </span>
-                  {row.holderCount == null ? null : (
-                    <span className="tabular-nums sm:text-right">
-                      👥 {formatCompact(row.holderCount)}
-                    </span>
-                  )}
-                </div>
-              </div>
-            )})}
+              )})}
 
-            {rows.length === 0 && (
-              <p className="text-sm text-gray-400">No data yet.</p>
-            )}
-          </div>
+              {rows.length === 0 && (
+                <p className="text-sm text-gray-400">No data yet.</p>
+              )}
+            </div>
 
-          <div className="pt-4 text-xs text-gray-500 text-right">
-            {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
+            <div className="pt-4 text-xs text-gray-500 text-right mt-auto">
+              {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
+            </div>
           </div>
         </div>
       )}
