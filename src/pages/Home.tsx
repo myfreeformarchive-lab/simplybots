@@ -9,7 +9,7 @@ export default function Home() {
     <main className="min-h-screen bg-black text-white selection:bg-solana-purple/30 selection:text-white">
       <LeaderboardHistoryTicker />
 
-      <section className="relative" style={{ paddingTop: 85, paddingBottom: 85 }}>
+      <section className="relative" style={{ paddingTop: 70, paddingBottom: 96 }}>
         <div className="w-full px-3 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
             <div className="lg:col-span-6">
