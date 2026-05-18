@@ -806,8 +806,8 @@ export default function ShoutoutsFeed() {
       {error ? (
         <p className="text-sm text-red-400">{error}</p>
       ) : isLoading && bigBuyItems.length === 0 && boostItems.length === 0 ? (
-        <div className="space-y-2 animate-pulse">
-          <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 min-h-[300px] flex flex-col justify-between">
+        <div className="animate-pulse">
+          <div className="py-6 min-h-[300px] flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2 min-w-0">
@@ -818,15 +818,15 @@ export default function ShoutoutsFeed() {
                 <div className="h-4 w-16 rounded bg-white/10" />
               </div>
               <div className="mt-2 h-3 w-48 rounded bg-white/10" />
-              <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/5">
                 {Array.from({ length: 4 }).map((_, idx) => (
-                  <div key={`skb-${idx}`} className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                  <div key={`skb-${idx}`} className="px-3 py-2">
                     <div className="h-3 w-10 rounded bg-white/10" />
                     <div className="mt-2 h-4 w-16 rounded bg-white/10" />
                   </div>
                 ))}
               </div>
-              <div className="mt-4 rounded-lg border border-white/5 bg-white/5 px-3 py-2">
+              <div className="mt-4 rounded-xl bg-white/5 px-3 py-2">
                 <div className="h-3 w-12 rounded bg-white/10" />
                 <div className="mt-2 flex flex-wrap gap-2">
                   {Array.from({ length: 3 }).map((_, idx) => (
@@ -851,9 +851,9 @@ export default function ShoutoutsFeed() {
               </p>
             </div>
           ) : activeCard.kind === "boost" ? (
-            <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 flex flex-col justify-between min-h-[300px]">
+            <div className="py-6 flex flex-col justify-between min-h-[300px]">
               <div className="mb-6">
-                <div className="relative h-24 rounded-xl overflow-hidden border border-white/10 bg-white/5">
+                <div className="relative h-24 rounded-xl overflow-hidden bg-white/5">
                   {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
                     <img
                       src={tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ?? undefined}
@@ -935,14 +935,14 @@ export default function ShoutoutsFeed() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-gray-300">
-                  <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/5 text-xs text-gray-300">
+                  <div className="px-3 py-2">
                     <div className="text-[10px] text-gray-500">MCAP</div>
                     <div className="font-bold text-white tabular-nums">
                       {activeCard.item.stats?.mcap == null ? "—" : `$${formatUsdCompact(activeCard.item.stats.mcap)}`}
                     </div>
                   </div>
-                  <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                  <div className="px-3 py-2">
                     <div className="text-[10px] text-gray-500">1h Vol</div>
                     <div className="font-bold text-white tabular-nums">
                       {activeCard.item.stats?.buyVolumeUsd == null
@@ -950,7 +950,7 @@ export default function ShoutoutsFeed() {
                         : `$${formatUsdCompact(activeCard.item.stats.buyVolumeUsd)}`}
                     </div>
                   </div>
-                  <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                  <div className="px-3 py-2">
                     <div className="text-[10px] text-gray-500">1h Buys</div>
                     <div className="font-bold text-white tabular-nums">
                       {activeCard.item.stats?.buyCount == null
@@ -958,7 +958,7 @@ export default function ShoutoutsFeed() {
                         : new Intl.NumberFormat(DISPLAY_LOCALE).format(activeCard.item.stats.buyCount)}
                     </div>
                   </div>
-                  <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                  <div className="px-3 py-2">
                     <div className="text-[10px] text-gray-500">Score</div>
                     <div className="font-bold text-white tabular-nums">
                       {activeCard.item.stats?.score == null ? "—" : formatScore(activeCard.item.stats.score)}
@@ -975,9 +975,9 @@ export default function ShoutoutsFeed() {
               const socials = extractSocialLinks(item.messageMarkdown);
               const dexPaid = extractDexPaid(item.messageMarkdown);
               return (
-                <div className="rounded-xl border border-white/5 bg-white/5 px-4 py-4 flex flex-col justify-between min-h-[300px]">
+                <div className="py-6 flex flex-col justify-between min-h-[300px]">
                   <div className="mb-6">
-                    <div className="relative h-24 rounded-xl overflow-hidden border border-white/10 bg-white/5">
+                    <div className="relative h-24 rounded-xl overflow-hidden bg-white/5">
                       {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
                         <img
                           src={tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ?? undefined}
@@ -1062,26 +1062,26 @@ export default function ShoutoutsFeed() {
                       </div>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-3 text-xs text-gray-300">
-                      <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                    <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/5 text-xs text-gray-300">
+                      <div className="px-3 py-2">
                         <div className="text-[10px] text-gray-500">SOL</div>
                         <div className="font-bold text-white tabular-nums">
                           {item.solSpent == null ? "—" : formatSol(item.solSpent)}
                         </div>
                       </div>
-                      <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                      <div className="px-3 py-2">
                         <div className="text-[10px] text-gray-500">USD</div>
                         <div className="font-bold text-white tabular-nums">
                           {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
                         </div>
                       </div>
-                      <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                      <div className="px-3 py-2">
                         <div className="text-[10px] text-gray-500">Got</div>
                         <div className="font-bold text-white tabular-nums">
                           {item.tokensReceived == null ? "—" : formatCompact(item.tokensReceived)}
                         </div>
                       </div>
-                      <div className="rounded-lg border border-white/5 bg-white/5 px-2 py-1.5">
+                      <div className="px-3 py-2">
                         <div className="text-[10px] text-gray-500">Token</div>
                         <div className="font-bold text-white tabular-nums truncate">
                           {item.tokenAddress == null ? "—" : shorten(item.tokenAddress, 6, 4)}
@@ -1090,7 +1090,7 @@ export default function ShoutoutsFeed() {
                     </div>
 
                     {socials.length > 0 ? (
-                      <div className="mt-4 rounded-lg border border-white/5 bg-white/5 px-3 py-2">
+                      <div className="mt-4 rounded-xl bg-white/5 px-3 py-2">
                         <div className="text-[10px] text-gray-500 mb-1">Socials</div>
                         <div className="flex flex-wrap gap-2">
                           {socials.map((s) => (
@@ -1099,7 +1099,7 @@ export default function ShoutoutsFeed() {
                               href={s.url}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                              className="inline-flex items-center gap-1 rounded-md bg-white/5 px-2 py-1 text-xs text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
                               title={s.url}
                             >
                               <span>{s.label}</span>
