@@ -352,20 +352,32 @@ export default function LeaderboardHistoryTicker() {
 
   return (
     <div className="sticky top-0 z-50 bg-black/50 backdrop-blur-xl border-b border-white/10">
-      <div className="w-full px-3 sm:px-6 lg:px-8 py-3">
-        {items.length === 0 ? null : (
-          <div className="sb-ticker relative">
-            <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-black via-black/80 to-transparent" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-black via-black/80 to-transparent" />
+      <div className="w-full px-3 sm:px-6 lg:px-8 h-16 flex items-center">
+        <div className="sb-ticker relative w-full">
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-black via-black/80 to-transparent" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-black via-black/80 to-transparent" />
 
-            <div ref={trackRef} className="sb-ticker__track flex items-center gap-3 py-2">
-              {items.flatMap((row, idx) => [
-                renderItem(row),
-                idx === items.length - 1 ? null : renderSeparator(`sep:${row.contract_address}`),
-              ])}
-            </div>
+          <div
+            ref={trackRef}
+            className={`sb-ticker__track flex items-center gap-3 ${items.length === 0 ? "opacity-0" : ""}`}
+          >
+            {items.length === 0
+              ? Array.from({ length: 8 }).map((_, idx) => (
+                  <div
+                    key={`ph-${idx}`}
+                    className="flex items-center gap-3 px-4 py-2 rounded-xl border border-white/10 bg-black/40 backdrop-blur-md"
+                  >
+                    <span className="font-bold tracking-wide text-white">TOKEN</span>
+                    <span className="text-xs text-gray-400 tabular-nums">MCAP —</span>
+                    <span className="text-xs text-gray-400 tabular-nums">Holders —</span>
+                  </div>
+                ))
+              : items.flatMap((row, idx) => [
+                  renderItem(row),
+                  idx === items.length - 1 ? null : renderSeparator(`sep:${row.contract_address}`),
+                ])}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
