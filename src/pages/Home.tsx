@@ -11,7 +11,7 @@ export default function Home() {
 
       <section className="relative">
         <div className="w-full">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 divide-y divide-white/10 lg:divide-y-0 lg:divide-x lg:h-[calc(100vh-4rem)]">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 divide-y divide-white/10 lg:divide-y-0 lg:divide-x lg:min-h-[calc(100dvh-4rem)] lg:h-[calc(100dvh-4rem)]">
             <div className="lg:col-span-6 lg:h-full overflow-hidden">
               <LiveLeaderboard />
             </div>
