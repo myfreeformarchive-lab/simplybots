@@ -818,9 +818,9 @@ export default function ShoutoutsFeed() {
                 <div className="h-4 w-16 rounded bg-white/10" />
               </div>
               <div className="mt-2 h-3 w-48 rounded bg-white/10" />
-              <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5">
+              <div className="mt-4 grid grid-cols-2 gap-px rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5">
                 {Array.from({ length: 4 }).map((_, idx) => (
-                  <div key={`skb-${idx}`} className="px-3 py-2">
+                  <div key={`skb-${idx}`} className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
                     <div className="h-3 w-10 rounded bg-white/10" />
                     <div className="mt-2 h-4 w-16 rounded bg-white/10" />
                   </div>
@@ -935,14 +935,14 @@ export default function ShoutoutsFeed() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5 text-xs text-gray-300">
-                  <div className="px-3 py-2">
+                <div className="mt-4 grid grid-cols-2 gap-px rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5 text-xs text-gray-300">
+                  <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
                     <div className="text-[10px] text-gray-500">MCAP</div>
                     <div className="font-bold text-white tabular-nums">
                       {activeCard.item.stats?.mcap == null ? "—" : `$${formatUsdCompact(activeCard.item.stats.mcap)}`}
                     </div>
                   </div>
-                  <div className="px-3 py-2">
+                  <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
                     <div className="text-[10px] text-gray-500">1h Vol</div>
                     <div className="font-bold text-white tabular-nums">
                       {activeCard.item.stats?.buyVolumeUsd == null
@@ -950,7 +950,7 @@ export default function ShoutoutsFeed() {
                         : `$${formatUsdCompact(activeCard.item.stats.buyVolumeUsd)}`}
                     </div>
                   </div>
-                  <div className="px-3 py-2">
+                  <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
                     <div className="text-[10px] text-gray-500">1h Buys</div>
                     <div className="font-bold text-white tabular-nums">
                       {activeCard.item.stats?.buyCount == null
@@ -958,7 +958,7 @@ export default function ShoutoutsFeed() {
                         : new Intl.NumberFormat(DISPLAY_LOCALE).format(activeCard.item.stats.buyCount)}
                     </div>
                   </div>
-                  <div className="px-3 py-2">
+                  <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
                     <div className="text-[10px] text-gray-500">Score</div>
                     <div className="font-bold text-white tabular-nums">
                       {activeCard.item.stats?.score == null ? "—" : formatScore(activeCard.item.stats.score)}
@@ -1062,26 +1062,26 @@ export default function ShoutoutsFeed() {
                       </div>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5 text-xs text-gray-300">
-                      <div className="px-3 py-2">
+                    <div className="mt-4 grid grid-cols-2 gap-px rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5 text-xs text-gray-300">
+                      <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
                         <div className="text-[10px] text-gray-500">SOL</div>
                         <div className="font-bold text-white tabular-nums">
                           {item.solSpent == null ? "—" : formatSol(item.solSpent)}
                         </div>
                       </div>
-                      <div className="px-3 py-2">
+                      <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
                         <div className="text-[10px] text-gray-500">USD</div>
                         <div className="font-bold text-white tabular-nums">
                           {item.usdValue == null ? "—" : formatUsd(item.usdValue)}
                         </div>
                       </div>
-                      <div className="px-3 py-2">
+                      <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
                         <div className="text-[10px] text-gray-500">Got</div>
                         <div className="font-bold text-white tabular-nums">
                           {item.tokensReceived == null ? "—" : formatCompact(item.tokensReceived)}
                         </div>
                       </div>
-                      <div className="px-3 py-2">
+                      <div className="px-3 py-2 bg-white/[0.015] lg:bg-white/[0.03]">
                         <div className="text-[10px] text-gray-500">Token</div>
                         <div className="font-bold text-white tabular-nums truncate">
                           {item.tokenAddress == null ? "—" : shorten(item.tokenAddress, 6, 4)}
