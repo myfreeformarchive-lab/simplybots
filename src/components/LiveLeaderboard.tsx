@@ -442,7 +442,7 @@ export default function LiveLeaderboard() {
 
   if (!isSupabaseConfigured) {
     return (
-      <div className="glass-card border border-white/10 rounded-2xl p-6">
+      <div className="h-full flex flex-col px-4 lg:px-6 py-4">
         <div className="flex items-center gap-2 text-white font-bold mb-2">
           <Trophy className="w-4 h-4 text-banana" />
           Global Leaderboard
@@ -466,8 +466,8 @@ export default function LiveLeaderboard() {
   }
 
   return (
-    <div className="glass-card border border-white/10 rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="h-full flex flex-col px-4 lg:px-6 py-4">
+      <div className="flex items-center justify-between py-3 border-b border-white/10">
         <div className="flex items-center gap-2 text-white font-bold">
           <Trophy className="w-4 h-4 text-banana" />
           Global Leaderboard
@@ -479,7 +479,7 @@ export default function LiveLeaderboard() {
               aria-label="Previous"
               disabled={pageIndex === 0 || rows.length === 0}
               onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
+              className="h-7 w-7 inline-flex items-center justify-center rounded-md bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -491,7 +491,7 @@ export default function LiveLeaderboard() {
               aria-label="Next"
               disabled={pageIndex >= pageCount - 1 || rows.length === 0}
               onClick={() => setPageIndex((p) => Math.min(pageCount - 1, p + 1))}
-              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
+              className="h-7 w-7 inline-flex items-center justify-center rounded-md bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -502,11 +502,11 @@ export default function LiveLeaderboard() {
       {error ? (
         <p className="text-sm text-red-400">{error}</p>
       ) : isLoading && rows.length === 0 ? (
-        <div className="space-y-2 animate-pulse">
+        <div className="flex-1 overflow-auto animate-pulse">
           {Array.from({ length: 5 }).map((_, idx) => (
             <div
               key={`sk-${idx}`}
-              className="rounded-xl border border-white/5 bg-white/5 px-3 py-2"
+              className="py-4 border-b border-white/10"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -524,8 +524,8 @@ export default function LiveLeaderboard() {
           ))}
         </div>
       ) : (
-        <div>
-          <div className="space-y-2">
+        <div className="flex-1 overflow-auto">
+          <div className="divide-y divide-white/10">
             {currentPageRows.map((row, idx) => {
               const globalRank = pageIndex * pageSize + idx + 1;
               const tokenUrl =
@@ -542,7 +542,7 @@ export default function LiveLeaderboard() {
               return (
               <div
                 key={`${row.contractAddress ?? "na"}-${row.symbol ?? globalRank}`}
-                className="rounded-xl border border-white/5 bg-white/5 px-3 py-2"
+                className="py-4"
               >
                 <div className="grid grid-cols-[3rem_minmax(0,1fr)_auto] items-start gap-x-3 gap-y-1">
                   <span className="text-sm text-gray-400 tabular-nums text-left">
@@ -625,7 +625,7 @@ export default function LiveLeaderboard() {
             )}
           </div>
 
-          <div className="mt-4 text-xs text-gray-500 text-right">
+          <div className="pt-4 text-xs text-gray-500 text-right">
             {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
           </div>
         </div>

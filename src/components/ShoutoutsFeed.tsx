@@ -784,7 +784,7 @@ export default function ShoutoutsFeed() {
 
   if (!isSupabaseConfigured || !tableName) {
     return (
-      <div className="glass-card border border-white/10 rounded-2xl p-6 h-full flex flex-col">
+      <div className="h-full flex flex-col px-4 lg:px-6 py-4">
         <div className="flex items-center gap-2 text-white font-bold mb-2">
           <Megaphone className="w-4 h-4 text-solana-purple" />
           Shoutouts
@@ -797,8 +797,8 @@ export default function ShoutoutsFeed() {
   }
 
   return (
-    <div className="glass-card border border-white/10 rounded-2xl p-6 h-full flex flex-col">
-      <div className="flex items-center gap-2 text-white font-bold mb-4">
+    <div className="h-full flex flex-col px-4 lg:px-6 py-4">
+      <div className="flex items-center gap-2 text-white font-bold py-3 border-b border-white/10">
         <Megaphone className="w-4 h-4 text-solana-purple" />
         Shoutouts
       </div>

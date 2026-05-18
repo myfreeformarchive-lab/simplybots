@@ -228,7 +228,7 @@ export default function DiamondHandsFeed() {
 
   if (!isSupabaseConfigured) {
     return (
-      <div className="glass-card border border-white/10 rounded-2xl p-6">
+      <div className="h-full flex flex-col px-4 lg:px-6 py-4">
         <div className="flex items-center gap-2 text-white font-bold mb-2">
           <Diamond className="w-4 h-4 text-cyan-300" />
           Diamond Hands
@@ -241,8 +241,8 @@ export default function DiamondHandsFeed() {
   }
 
   return (
-    <div className="glass-card border border-white/10 rounded-2xl p-6">
-      <div className="flex items-center justify-between mb-4">
+    <div className="h-full flex flex-col px-4 lg:px-6 py-4">
+      <div className="flex items-center justify-between py-3 border-b border-white/10">
         <div className="flex items-center gap-2 text-white font-bold">
           <Diamond className="w-4 h-4 text-cyan-300" />
           Diamond Hands
@@ -254,7 +254,7 @@ export default function DiamondHandsFeed() {
               aria-label="Previous"
               disabled={pageIndex === 0 || items.length === 0}
               onClick={() => setPageIndex((p) => Math.max(0, p - 1))}
-              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
+              className="h-7 w-7 inline-flex items-center justify-center rounded-md bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -266,7 +266,7 @@ export default function DiamondHandsFeed() {
               aria-label="Next"
               disabled={pageIndex >= pageCount - 1 || items.length === 0}
               onClick={() => setPageIndex((p) => Math.min(pageCount - 1, p + 1))}
-              className="h-7 w-7 inline-flex items-center justify-center rounded-md border border-white/10 bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
+              className="h-7 w-7 inline-flex items-center justify-center rounded-md bg-white/5 text-gray-200 hover:bg-white/10 disabled:opacity-40 disabled:hover:bg-white/5"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -277,11 +277,11 @@ export default function DiamondHandsFeed() {
       {error ? (
         <p className="text-sm text-red-400">{error}</p>
       ) : isLoading && items.length === 0 ? (
-        <div className="space-y-2 animate-pulse">
+        <div className="flex-1 overflow-auto animate-pulse">
           {Array.from({ length: 5 }).map((_, idx) => (
             <div
               key={`sk-${idx}`}
-              className="rounded-xl border border-white/5 bg-white/5 px-3 py-2 min-h-[56px] flex flex-col justify-between"
+              className="py-4 border-b border-white/10 min-h-[56px] flex flex-col justify-between"
             >
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3 min-w-0">
@@ -299,8 +299,8 @@ export default function DiamondHandsFeed() {
           ))}
         </div>
       ) : (
-        <div>
-          <div className="space-y-2">
+        <div className="flex-1 overflow-auto">
+          <div className="divide-y divide-white/10">
             {currentPageItems.map((item, idx) => {
               const globalRank = pageIndex * pageSize + idx + 1;
               const badge = getBadge(item.usdValue);
@@ -308,7 +308,7 @@ export default function DiamondHandsFeed() {
               return (
                 <div
                   key={`${item.txSig ?? "na"}-${globalRank}`}
-                  className="rounded-xl border border-white/5 bg-white/5 px-2 py-2 min-h-[56px] flex flex-col justify-between"
+                  className="py-4 min-h-[56px] flex flex-col justify-between"
                 >
                   <div className="grid grid-cols-[2.5rem_minmax(0,1fr)_auto] items-start gap-x-2 gap-y-1">
                     <span className="text-sm text-gray-400 tabular-nums text-left">
@@ -369,7 +369,7 @@ export default function DiamondHandsFeed() {
             )}
           </div>
 
-          <div className="mt-4 text-xs text-gray-500 text-right">
+          <div className="pt-4 text-xs text-gray-500 text-right">
             {lastUpdated ? `Updated ${lastUpdated}` : "Updated just now"}
           </div>
         </div>

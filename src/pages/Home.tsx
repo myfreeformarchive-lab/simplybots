@@ -9,16 +9,16 @@ export default function Home() {
     <main className="min-h-screen bg-black text-white selection:bg-solana-purple/30 selection:text-white">
       <LeaderboardHistoryTicker />
 
-      <section className="relative" style={{ paddingTop: 32, paddingBottom: 96 }}>
-        <div className="w-full px-3 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-3">
-            <div className="lg:col-span-6">
+      <section className="relative">
+        <div className="w-full">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-0 divide-y divide-white/10 lg:divide-y-0 lg:divide-x lg:h-[calc(100vh-4rem)]">
+            <div className="lg:col-span-6 lg:h-full overflow-hidden">
               <LiveLeaderboard />
             </div>
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 lg:h-full overflow-hidden">
               <DiamondHandsFeed />
             </div>
-            <div className="lg:col-span-3">
+            <div className="lg:col-span-3 lg:h-full overflow-hidden">
               <ShoutoutsFeed />
             </div>
           </div>
