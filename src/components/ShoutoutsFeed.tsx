@@ -818,7 +818,7 @@ export default function ShoutoutsFeed() {
                 <div className="h-4 w-16 rounded bg-white/10" />
               </div>
               <div className="mt-2 h-3 w-48 rounded bg-white/10" />
-              <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/5 lg:bg-white/10">
+              <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5">
                 {Array.from({ length: 4 }).map((_, idx) => (
                   <div key={`skb-${idx}`} className="px-3 py-2">
                     <div className="h-3 w-10 rounded bg-white/10" />
@@ -826,7 +826,7 @@ export default function ShoutoutsFeed() {
                   </div>
                 ))}
               </div>
-              <div className="mt-4 rounded-xl bg-white/5 lg:bg-white/10 px-3 py-2">
+              <div className="mt-4 rounded-xl bg-white/[0.025] lg:bg-white/5 px-3 py-2">
                 <div className="h-3 w-12 rounded bg-white/10" />
                 <div className="mt-2 flex flex-wrap gap-2">
                   {Array.from({ length: 3 }).map((_, idx) => (
@@ -853,7 +853,7 @@ export default function ShoutoutsFeed() {
           ) : activeCard.kind === "boost" ? (
             <div className="py-6 flex flex-col justify-between min-h-[300px]">
               <div className="mb-6">
-                <div className="relative h-24 rounded-xl overflow-hidden bg-white/5 lg:bg-white/10">
+                <div className="relative h-24 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5">
                   {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
                     <img
                       src={tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ?? undefined}
@@ -935,7 +935,7 @@ export default function ShoutoutsFeed() {
                   </div>
                 </div>
 
-                <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/5 lg:bg-white/10 text-xs text-gray-300">
+                <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5 text-xs text-gray-300">
                   <div className="px-3 py-2">
                     <div className="text-[10px] text-gray-500">MCAP</div>
                     <div className="font-bold text-white tabular-nums">
@@ -977,7 +977,7 @@ export default function ShoutoutsFeed() {
               return (
                 <div className="py-6 flex flex-col justify-between min-h-[300px]">
                   <div className="mb-6">
-                    <div className="relative h-24 rounded-xl overflow-hidden bg-white/5 lg:bg-white/10">
+                    <div className="relative h-24 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5">
                       {activeTokenAddress && tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ? (
                         <img
                           src={tokenBannersByAddress[normalizeAddress(activeTokenAddress)] ?? undefined}
@@ -1062,7 +1062,7 @@ export default function ShoutoutsFeed() {
                       </div>
                     </div>
 
-                    <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/5 lg:bg-white/10 text-xs text-gray-300">
+                    <div className="mt-4 grid grid-cols-2 gap-0 divide-x divide-y divide-white/10 rounded-xl overflow-hidden bg-white/[0.025] lg:bg-white/5 text-xs text-gray-300">
                       <div className="px-3 py-2">
                         <div className="text-[10px] text-gray-500">SOL</div>
                         <div className="font-bold text-white tabular-nums">
@@ -1090,7 +1090,7 @@ export default function ShoutoutsFeed() {
                     </div>
 
                     {socials.length > 0 ? (
-                      <div className="mt-4 rounded-xl bg-white/5 lg:bg-white/10 px-3 py-2">
+                      <div className="mt-4 rounded-xl bg-white/[0.025] lg:bg-white/5 px-3 py-2">
                         <div className="text-[10px] text-gray-500 mb-1">Socials</div>
                         <div className="flex flex-wrap gap-2">
                           {socials.map((s) => (
@@ -1099,7 +1099,7 @@ export default function ShoutoutsFeed() {
                               href={s.url}
                               target="_blank"
                               rel="noreferrer"
-                              className="inline-flex items-center gap-1 rounded-md bg-white/5 lg:bg-white/10 px-2 py-1 text-xs text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
+                              className="inline-flex items-center gap-1 rounded-md bg-white/[0.025] lg:bg-white/5 px-2 py-1 text-xs text-gray-300 hover:text-white hover:bg-white/10 transition-colors"
                               title={s.url}
                             >
                               <span>{s.label}</span>
