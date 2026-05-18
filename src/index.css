@@ -59,6 +59,15 @@
     transform: translate3d(0, 0, 0);
   }
 
+  .sb-scrollbar-none {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .sb-scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .sb-ticker__track {
       transform: none;

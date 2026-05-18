@@ -502,7 +502,7 @@ export default function LiveLeaderboard() {
       {error ? (
         <p className="text-sm text-red-400">{error}</p>
       ) : isLoading && rows.length === 0 ? (
-        <div className="flex-1 overflow-auto animate-pulse">
+        <div className="flex-1 overflow-auto sb-scrollbar-none animate-pulse">
           {Array.from({ length: 5 }).map((_, idx) => (
             <div
               key={`sk-${idx}`}
@@ -524,7 +524,7 @@ export default function LiveLeaderboard() {
           ))}
         </div>
       ) : (
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto sb-scrollbar-none">
           <div className="divide-y divide-white/10">
             {currentPageRows.map((row, idx) => {
               const globalRank = pageIndex * pageSize + idx + 1;

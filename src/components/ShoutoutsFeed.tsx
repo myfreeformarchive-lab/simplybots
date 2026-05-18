@@ -842,7 +842,7 @@ export default function ShoutoutsFeed() {
           </div>
         </div>
       ) : (
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col overflow-auto sb-scrollbar-none">
           {activeCard == null ? (
             <div className="flex-1 flex flex-col items-center justify-center py-12 text-center">
               <Megaphone className="w-8 h-8 text-solana-purple/30 mb-3" />
