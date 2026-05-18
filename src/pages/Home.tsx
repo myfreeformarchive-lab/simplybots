@@ -26,8 +26,8 @@ export default function Home() {
       </section>
 
       <section className="border-t border-white/10">
-        <div className="w-full px-4 lg:px-6 py-10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+        <div className="w-full px-4 lg:px-6 py-10 md:max-w-5xl md:mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-center md:gap-10 gap-6">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold">Socials</h2>
               <p className="text-gray-400 mt-2">
