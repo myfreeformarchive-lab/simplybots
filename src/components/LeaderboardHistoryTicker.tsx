@@ -353,11 +353,7 @@ export default function LeaderboardHistoryTicker() {
   return (
     <div className="sticky top-0 z-50 bg-black/50 backdrop-blur-xl border-b border-white/10">
       <div className="w-full px-3 sm:px-6 lg:px-8 py-3">
-        {items.length === 0 ? (
-          <div className="text-xs text-gray-500 tabular-nums px-1">
-            {hasLoadedOnce ? "No leaderboard history yet." : "Loading leaderboard history..."}
-          </div>
-        ) : (
+        {items.length === 0 ? null : (
           <div className="sb-ticker relative">
             <div className="pointer-events-none absolute inset-y-0 left-0 w-12 bg-gradient-to-r from-black via-black/80 to-transparent" />
             <div className="pointer-events-none absolute inset-y-0 right-0 w-12 bg-gradient-to-l from-black via-black/80 to-transparent" />
